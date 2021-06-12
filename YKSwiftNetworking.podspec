@@ -21,14 +21,17 @@ Pod::Spec.new do |s|
 TODO: Add long description of the pod here.
                        DESC
 
-  s.homepage         = 'https://github.com/534272374@qq.com/YKSwiftNetworking'
+  s.homepage         = 'https://gitee.com/Edwrard/YKSwiftNetworking'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { '534272374@qq.com' => '534272374@qq.com' }
-  s.source           = { :git => 'https://github.com/534272374@qq.com/YKSwiftNetworking.git', :tag => s.version.to_s }
+  s.source           = { :git => 'https://gitee.com/Edwrard/YKSwiftNetworking.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '9.0'
+  s.dependency  'Alamofire', '4.9.1'
+  s.dependency  'ReactiveCocoa'
+  s.dependency  "YK_Swift_BaseTools/SwiftyJSON"
 
   s.source_files = 'YKSwiftNetworking/Classes/**/*'
   

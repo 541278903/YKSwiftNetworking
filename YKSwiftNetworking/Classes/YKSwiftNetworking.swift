@@ -44,10 +44,26 @@ public class YKSwiftNetworking:NSObject
         get{
             if _request == nil {
                 _request = YKSwiftNetworkRequest.init()
+                if (!self.ignoreDefaultHeader && self.defaultHeader != nil) {
+                    for (key,value) in self.defaultHeader! {
+                        _request!.header[key] = value  //MARK:设置默认请求参数
+                    }
+                }
+                if (!self.ignoreDefaultParams && self.defaultParams != nil) {
+                    for (key,value) in self.defaultParams! {
+                        _request!.params[key] = value //MARK:设置默认请求参数
+                    }
+                }
+                for (key,value) in self.commonHeader {
+                    _request!.header[key] = value
+                }
+                for (key,value) in self.commonParams {
+                    _request!.params[key] = value
+                }
             }
             return _request!
         }set{
-            
+            _request =  newValue
         }
     }
     
@@ -101,11 +117,36 @@ public class YKSwiftNetworking:NSObject
     public func url(url:String)->YKSwiftNetworking{
         var urlString:String = ""
         
-        let utf8Url = url.addingPercentEncoding(withAllowedCharacters: CharacterSet.init(charactersIn: "`#%^{}\"[]|\\<> ").inverted)
+        let utf8Url = url.addingPercentEncoding(withAllowedCharacters: CharacterSet.init(charactersIn: "`#%^{}\"[]|\\<> ").inverted) ?? ""
         
         if url.hasPrefix("http://") || url.hasPrefix("https://") {
-//            self.request.
+            self.request.urlStr = utf8Url
+            return self
         }
+        var prefix:String = ""
+        if self.prefixUrl == nil {
+            if (YKSwiftNetworkingConfig.share.defaultPrefixUrl != nil) {
+                prefix = YKSwiftNetworkingConfig.share.defaultPrefixUrl!
+            }
+        }else{
+            prefix = self.prefixUrl!
+        }
+        
+        var removeSlash:String? = nil
+        if prefix.count > 0 && utf8Url.count > 0 {
+            let lastCharInPrefix = (prefix as NSString).substring(from: prefix.count - 1)
+            let firstCharInUrl = (utf8Url as NSString).substring(to: 1)
+            if lastCharInPrefix == "/" && firstCharInUrl == "/" {
+                removeSlash = (prefix as NSString).substring(to: prefix.count - 1)
+            }
+        }
+        if removeSlash != nil {
+            prefix = removeSlash!
+        }
+        urlString = "\(prefix)\(utf8Url)"
+        
+        self.request.urlStr = urlString
+        
         return self
     }
     
@@ -116,7 +157,58 @@ public class YKSwiftNetworking:NSObject
     
     public func method(method:YKNetworkRequestMethod)->YKSwiftNetworking{
         
+        self.request.method = method
         return self
+    }
+    
+    public func disableDynamicParams()->YKSwiftNetworking{
+        
+        self.request.disableDynamicParams = true
+        return self
+    }
+    
+    public func disableHandleResponse()->YKSwiftNetworking{
+        
+        self.request.disableHandleResponse = true
+        return self
+    }
+    
+    public func disableDynamicHeader()->YKSwiftNetworking{
+        
+        self.request.disableDynamicHeader = true
+        return self
+    }
+    
+    public func minRepeatInterval(repeatInterval:Double)->YKSwiftNetworking{
+        
+        self.request.repeatRequestInterval = repeatInterval
+        return self
+    }
+    
+    public func downloadDestPath(destPath:String)->YKSwiftNetworking{
+        
+        self.request.destPath = destPath
+        return self
+    }
+    
+    public func uploadData(data:Data, filename:String, mimeType:String)->YKSwiftNetworking{
+        
+        self.request.uploadFileData = data
+        self.request.uploadName = filename
+        self.request.uploadMimeType = mimeType
+        return self
+    }
+    
+    public func progress(progressBlock:@escaping ((_ progress:Double)->Void))->YKSwiftNetworking
+    {
+        self.request.progressBlock = progressBlock
+        return self
+    }
+    
+    public func execute(){
+        print(self.request)
+        self._request = nil
+        print(self.request)
     }
     
 }
