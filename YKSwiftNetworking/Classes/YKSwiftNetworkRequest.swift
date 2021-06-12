@@ -10,6 +10,7 @@ import Foundation
 
 public class YKSwiftNetworkRequest:NSObject,NSCopying
 {
+    
 //    public func encode(with coder: NSCoder) {
 //        coder.encode(urlStr, forKey: "urlStr")
 //        coder.encode(params, forKey: "params")
@@ -49,6 +50,7 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
 //    }
     public func copy(with zone: NSZone? = nil) -> Any {
         let request:YKSwiftNetworkRequest = YKSwiftNetworkRequest.init()
+        request.name = self.name
         request.urlStr = self.urlStr
         request.params = self.params
         request.header = self.header
@@ -68,7 +70,7 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
         return request
     }
     
-    
+    public var name:String? = nil
     
     /** 请求地址 */
     public var urlStr:String = ""

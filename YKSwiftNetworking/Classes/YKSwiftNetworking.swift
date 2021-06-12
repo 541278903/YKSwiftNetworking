@@ -26,7 +26,7 @@ public protocol YKSwiftNetworkingDelegate: NSObjectProtocol{
     ///   - request: 请求
     ///   - response: 响应
     ///   - isException: 是否报错
-    func cacheRequest(request:YKSwiftNetworkRequest, response:YKSwiftNetworkResponse, isException:Bool)->Void
+    @objc func cacheRequest(request:YKSwiftNetworkRequest, response:YKSwiftNetworkResponse, isException:Bool)->Void
     
     
     @objc optional func networkingTest(test:String)->String
@@ -66,6 +66,7 @@ public class YKSwiftNetworking:NSObject
             _request =  newValue
         }
     }
+    private var requestDictionary:Dictionary<String,YKSwiftNetworkRequest> = [:]
     
 //    MARK:public
     open weak var delegate: YKSwiftNetworkingDelegate?
@@ -152,6 +153,9 @@ public class YKSwiftNetworking:NSObject
     
     public func params(params:Dictionary<String,Any>)->YKSwiftNetworking{
         
+        for (key,value) in params {
+            self.request.params[key] = value
+        }
         return self
     }
     
@@ -211,4 +215,114 @@ public class YKSwiftNetworking:NSObject
         print(self.request)
     }
     
+    public func handleConfigWithRequest(request:YKSwiftNetworkRequest)->Bool
+    {
+        if request.name == nil || request.name!.count == 0 {
+            request.name = UUID.init().uuidString
+        }
+        
+        let requestCopy = request.copy() as! YKSwiftNetworkRequest
+        self.configWithRequest(request: requestCopy)
+        
+        let config = YKSwiftNetworkingConfig.share
+        
+        if !request.disableDynamicHeader && ((self.dynamicHeaderConfig != nil) || config.dynamicHeaderConfig != nil) {
+            var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,Any>?)? = nil
+            
+            if self.dynamicHeaderConfig != nil {
+                dynamicHeaderConfig = self.dynamicHeaderConfig!
+            }else if config.dynamicHeaderConfig != nil{
+                dynamicHeaderConfig = config.dynamicHeaderConfig!
+            }
+            
+            let theHeader = dynamicHeaderConfig!(requestCopy) ?? [:]
+            
+            for (key,value) in theHeader {
+                if !request.header.keys.contains(key) {
+                    request.header[key] = value
+                }
+            }
+        }
+        
+        if !request.disableDynamicParams && ((self.dynamicParamsConfig != nil) || config.dynamicParamsConfig != nil)  {
+            var dynamicParamsConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,Any>?)? = nil
+            
+            if self.dynamicParamsConfig != nil {
+                dynamicParamsConfig = self.dynamicParamsConfig!
+            }else if config.dynamicParamsConfig != nil{
+                dynamicParamsConfig = config.dynamicParamsConfig!
+            }
+            
+            let theParams = dynamicParamsConfig!(requestCopy) ?? [:]
+            
+            for (key,value) in theParams {
+                if !request.params.keys.contains(key) {
+                    request.params[key] = value
+                }
+            }
+        }
+        
+        if (self.handleResponse == nil && config.handleResponse != nil) {
+            self.handleResponse = config.handleResponse!
+        }
+        
+        request.startTimeInterval = Date.init(timeIntervalSinceNow: 0).timeIntervalSince1970
+        
+        self.requestDictionary.updateValue(request, forKey: request.name!)
+        
+        
+        return true
+    }
+    
+    public func configWithRequest(request:YKSwiftNetworkRequest)->Void
+    {
+        //TODO:类似设置serialize
+//        let requestSerialize = ""
+        Alamofire.request("123", method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil)
+    }
+    
+    public func cancelAllRequest()
+    {
+        for (_,value) in self.requestDictionary {
+            if value.task != nil {
+                value.task!.cancel()
+            }else if value.downloadTask != nil {
+                value.downloadTask!.cancel()
+            }
+        }
+        self.requestDictionary.removeAll()
+    }
+    
+    public func cancelRequestWithName(name:String)->Void
+    {
+        if self.requestDictionary.keys.contains(name) {
+            let request = self.requestDictionary[name]
+            if request!.task != nil {
+                request!.task!.cancel()
+            }else if request!.downloadTask != nil{
+                request!.downloadTask!.cancel()
+            }
+            self.requestDictionary.removeValue(forKey: name)
+        }else{
+            #if DEBUG
+                print("请求已经完成或者没有name = \(name)的请求")
+            #endif
+        }
+    }
+    
+    private func saveTask(request:YKSwiftNetworkRequest, response:YKSwiftNetworkResponse, isException:Bool)->Void
+    {
+        if YKSwiftNetworkingConfig.share.cacheRequest != nil {
+            YKSwiftNetworkingConfig.share.cacheRequest!(response,request,isException)
+        }else if self.delegate != nil {
+            self.delegate!.cacheRequest(request: request, response: response, isException: isException)
+        }
+    }
+    
+    
+    deinit {
+        #if DEBUG
+            print("deinit:YKSwiftNetworking")
+        #endif
+    }
 }
