@@ -1,0 +1,6 @@
+framework module YKSwiftNetworking {
+  umbrella header "YKSwiftNetworking-umbrella.h"
+
+  export *
+  module * { export * }
+}
