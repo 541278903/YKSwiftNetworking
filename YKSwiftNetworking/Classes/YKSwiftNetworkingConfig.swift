@@ -19,7 +19,7 @@ public class YKSwiftNetworkingConfig:NSObject
     public var defaultHeader:Dictionary<String,Any>?
     
     /** 公用参数 */
-    public var defaultParams:Dictionary<String,Any>?
+    public var defaultParams:Dictionary<String,String>?
 
     /** 公用url前缀 */
     public var defaultPrefixUrl:String?
@@ -35,7 +35,7 @@ public class YKSwiftNetworkingConfig:NSObject
     public var dynamicParamsConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,Any>?)?
     
     /** 动态添加请求头，每次执行网络请求前都会访问一遍 修改的值优先级最低 */
-    public var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,Any>?)?
+    public var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,String>?)?
     
     /** 根据需求处理回调信息判断是否是正确的回调 即中转统一处理源数据 */
     public var handleResponse:((_ response:YKSwiftNetworkResponse,_ request:YKSwiftNetworkRequest)->Error?)?

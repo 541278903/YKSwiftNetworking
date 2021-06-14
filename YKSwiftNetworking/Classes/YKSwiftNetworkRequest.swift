@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Alamofire
 
 
 public class YKSwiftNetworkRequest:NSObject,NSCopying
@@ -79,30 +80,30 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
     public var params:Dictionary<String,Any> = [:]
     
     /** 请求头 */   //MARK:rewrite
-    public var header:Dictionary<String,Any> = [:]
+    public var header:Dictionary<String,String> = [:]
     
     /** 请求方式 */
     public var method:YKNetworkRequestMethod = .GET
     
     /** 获取当前的请求方式(字符串) ***/
-    public var methodStr:String{
+    public var methodStr:HTTPMethod{
         get{
-            var string:String = ""
+            var method:HTTPMethod = .get
             switch self.method {
             case .GET:
-                string = "GET"
+                method = .get
             case .POST:
-                string = "POST"
+                method = .post
             case .DELETE:
-                string = "DELETE"
+                method = .delete
             case .PUT:
-                string = "PUT"
+                method = .put
             case .PATCH:
-                string = "PATCH"
+                method = .patch
             default:
-                string = "GET"
+                method = .get
             }
-            return string
+            return method
         }
     }
     
@@ -116,9 +117,7 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
     public var disableHandleResponse:Bool = false
     
     /** 上传/下载进度 */
-    public var progressBlock:((_ progress:Double)->Void) = { progress in
-        
-    }
+    public var progressBlock:((_ progress:Double)->Void)?
     
     /** 最短重复请求时间 */   //MARK:rewrite
     public var repeatRequestInterval:Double = 300.00
@@ -139,7 +138,7 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
     public var startTimeInterval:TimeInterval?
     
     /** 请求Task 当启用假数据返回的时候为空 */
-    public var task:URLSessionDataTask? = nil
+    public var task:DataRequest? = nil
     
     /** 下载Task */
     public var downloadTask:URLSessionDownloadTask? = nil

@@ -71,9 +71,9 @@ public class YKSwiftNetworking:NSObject
 //    MARK:public
     open weak var delegate: YKSwiftNetworkingDelegate?
     /** 通用请求头 */
-    open var commonHeader:Dictionary<String,Any> = [:]
+    open var commonHeader:Dictionary<String,String> = [:]
     /** 公用头部 */
-    private var defaultHeader:Dictionary<String,Any>? = nil
+    private var defaultHeader:Dictionary<String,String>? = nil
     /** 通用参数 */
     open var commonParams:Dictionary<String,Any> = [:]
     /** 公用参数 */
@@ -93,7 +93,7 @@ public class YKSwiftNetworking:NSObject
     /**
      动态请求头的配置，每次执行请求都会加上这次的请求头
      */
-    open var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest) -> Dictionary<String,Any>)? = nil
+    open var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest) -> Dictionary<String,String>)? = nil
     
     public func get(url:String)->YKSwiftNetworking {
         return self.url(url: url).method(method: .GET)
@@ -108,7 +108,7 @@ public class YKSwiftNetworking:NSObject
         super.init()
     }
     
-    public convenience init(_ defaultHeader:Dictionary<String,Any>?, _ defaultParams:Dictionary<String,Any>?, _ prefixUrl:String?, _ handleResponse:@escaping((_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Error?) ) {
+    public convenience init(_ defaultHeader:Dictionary<String,String>?, _ defaultParams:Dictionary<String,Any>?, _ prefixUrl:String?, _ handleResponse:@escaping((_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Error?) ) {
         self.init()
         self.defaultHeader = defaultHeader
         self.defaultParams = defaultParams
@@ -211,19 +211,89 @@ public class YKSwiftNetworking:NSObject
     
     public func execute()->Observable<Any>{
         
+        let request = self.request.copy() as! YKSwiftNetworkRequest
+        let canContinue = self.handleConfigWithRequest(request: request)
+        if !canContinue {
+            self._request = nil
+            return Observable<Any>.empty()
+        }
+    
         let signal = Observable<Any>.create { observer in
-            
-            Alamofire.request(self.request.urlStr, method: .get, parameters: self.request.params, encoding: URLEncoding.default, headers: nil).responseData { response in
+            request.task = Alamofire.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header).response { response in
                 
-                    observer.onNext("nihao")
+                if response.error != nil {
+                    observer.onError(response.error!)
+                    let ykresponse = YKSwiftNetworkResponse.init()
+                    self.saveTask(request: request, response: ykresponse, isException: true)
                     observer.onCompleted()
-                    
-            }.resume()
+                }
+                
+                let ykresponse = YKSwiftNetworkResponse.init()
+                ykresponse.rawData = response.data
+                
+                if self.handleResponse != nil && !request.disableHandleResponse
+                {
+                    let error = self.handleResponse!(ykresponse,request)
+                    if error != nil {
+                        observer.onError(error!)
+                        self.saveTask(request: request, response: ykresponse, isException: true)
+                    }else{
+                        observer.onNext(["request":request,"response":ykresponse])
+                        self.saveTask(request: request, response: ykresponse, isException: false)
+                    }
+                }else{
+                    observer.onNext(["request":request,"response":ykresponse])
+                    self.saveTask(request: request, response: ykresponse, isException: false)
+                }
+                
+                observer.onCompleted()
+            }.downloadProgress { progress in
+                if request.progressBlock != nil {
+                    request.progressBlock!(progress.fractionCompleted)
+                }
+            }
+            request.task?.resume()
+            self._request = nil
+            
             return Disposables.create()
         }
         
         return signal
     }
+    
+    public func uploadDataSignal()->Observable<Any>{
+        
+        
+        let request = self.request.copy() as! YKSwiftNetworkRequest
+        request.header.updateValue("multipart/form-data", forKey: "content-type")
+        let canContinue = self.handleConfigWithRequest(request: request)
+        if !canContinue {
+            self._request = nil
+            return Observable<Any>.empty()
+        }
+    
+        let signal = Observable<Any>.create { observer in
+           
+            if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil{
+                Alamofire.upload(multipartFormData: { multipartFormData in
+                    multipartFormData.append(request.uploadFileData!, withName: "file", fileName: request.uploadName!, mimeType: request.uploadMimeType!)
+                }, to: request.urlStr) { encodingResult in
+                   
+                }
+            }else{
+                let error = NSError.init(domain: "com.YKSwiftNetworking", code: -1, userInfo: ["message":"未设置数据"])
+                observer.onError(error)
+                observer.onCompleted()
+            }
+            
+            self._request = nil
+            
+            return Disposables.create()
+        }
+        return signal
+    }
+    
+//    MARK:回调处理
     
     public func handleConfigWithRequest(request:YKSwiftNetworkRequest)->Bool
     {
@@ -237,7 +307,7 @@ public class YKSwiftNetworking:NSObject
         let config = YKSwiftNetworkingConfig.share
         
         if !request.disableDynamicHeader && ((self.dynamicHeaderConfig != nil) || config.dynamicHeaderConfig != nil) {
-            var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,Any>?)? = nil
+            var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,String>?)? = nil
             
             if self.dynamicHeaderConfig != nil {
                 dynamicHeaderConfig = self.dynamicHeaderConfig!
