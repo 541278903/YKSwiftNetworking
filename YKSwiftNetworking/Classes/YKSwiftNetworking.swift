@@ -7,8 +7,8 @@
 
 import Foundation
 import Alamofire
-import ReactiveCocoa
 import YK_Swift_BaseTools
+import RxSwift
 
 public enum YKNetworkRequestMethod {
     case GET
@@ -209,10 +209,20 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
-    public func execute(){
-        print(self.request)
-        self._request = nil
-        print(self.request)
+    public func execute()->Observable<Any>{
+        
+        let signal = Observable<Any>.create { observer in
+            
+            Alamofire.request(self.request.urlStr, method: .get, parameters: self.request.params, encoding: URLEncoding.default, headers: nil).responseData { response in
+                
+                    observer.onNext("nihao")
+                    observer.onCompleted()
+                    
+            }.resume()
+            return Disposables.create()
+        }
+        
+        return signal
     }
     
     public func handleConfigWithRequest(request:YKSwiftNetworkRequest)->Bool
@@ -277,7 +287,6 @@ public class YKSwiftNetworking:NSObject
     public func configWithRequest(request:YKSwiftNetworkRequest)->Void
     {
         //TODO:类似设置serialize
-//        let requestSerialize = ""
        let dataRequest =  Alamofire.request("123", method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil)
         
         dataRequest.resume()

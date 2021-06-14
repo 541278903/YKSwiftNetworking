@@ -30,7 +30,7 @@ TODO: Add long description of the pod here.
 
   s.ios.deployment_target = '9.0'
   s.dependency  'Alamofire', '4.9.1'
-  s.dependency  'ReactiveCocoa'
+  s.dependency  'RxSwift'
   s.dependency  "YK_Swift_BaseTools/SwiftyJSON"
 
   s.source_files = 'YKSwiftNetworking/Classes/**/*'
