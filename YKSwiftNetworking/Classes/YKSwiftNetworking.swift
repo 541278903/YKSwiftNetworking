@@ -278,7 +278,10 @@ public class YKSwiftNetworking:NSObject
     {
         //TODO:类似设置serialize
 //        let requestSerialize = ""
-        Alamofire.request("123", method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil)
+       let dataRequest =  Alamofire.request("123", method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil)
+        
+        dataRequest.resume()
+        
     }
     
     public func cancelAllRequest()
