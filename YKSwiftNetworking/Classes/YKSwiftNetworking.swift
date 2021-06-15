@@ -318,7 +318,7 @@ public class YKSwiftNetworking:NSObject
     
     public static func executeByMethod(method:YKNetworkRequestMethod, url:String, params:Dictionary<String,Any>?, complate:@escaping complateBlockType)->Void
     {
-        YKSwiftNetworking.init().url(url: url).method(method: method).params(params: params ?? [:]).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().subscribe { result in
+        _ = YKSwiftNetworking.init().url(url: url).method(method: method).params(params: params ?? [:]).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().subscribe { result in
             complate(result,nil)
         } onError: { error in
             complate(nil,error)
