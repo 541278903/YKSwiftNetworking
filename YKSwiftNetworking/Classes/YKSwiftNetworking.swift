@@ -393,9 +393,11 @@ public class YKSwiftNetworking:NSObject
         return self.url(url: url).method(method: .PATCH)
     }
     
-    public static func executeByMethod(method:YKNetworkRequestMethod, url:String, params:Dictionary<String,Any>?, complate:@escaping complateBlockType)->Void
+    public static func executeByMethod(method:YKNetworkRequestMethod, url:String, params:Dictionary<String,Any>?,header:Dictionary<String,String>?, complate:@escaping complateBlockType)->Void
     {
-        _ = YKSwiftNetworking.init().url(url: url).method(method: method).params(params: params ?? [:]).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().mapWithRawData().subscribe { result in
+        _ = YKSwiftNetworking.init(header, nil, nil, { response, request in
+            return nil
+        }).url(url: url).method(method: method).params(params: params ?? [:]).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().mapWithRawData().subscribe { result in
             complate(result,nil)
         } onError: { error in
             complate(nil,error)
@@ -407,18 +409,27 @@ public class YKSwiftNetworking:NSObject
 
     }
     
-    public static func GET(url:String, params:Dictionary<String,Any>?, complate:@escaping complateBlockType)->Void
+    public static func GET(url:String, params:Dictionary<String,Any>?,header:Dictionary<String,String>?, complate:@escaping complateBlockType)->Void
     {
-        YKSwiftNetworking.executeByMethod(method: .GET, url: url, params: params, complate: complate)
+        YKSwiftNetworking.executeByMethod(method: .GET, url: url, params: params,header: header, complate: complate)
     }
     
-    public static func POST(url:String, params:Dictionary<String,Any>?, complate:@escaping complateBlockType)->Void
+    public static func POST(url:String, params:Dictionary<String,Any>?,header:Dictionary<String,String>?, complate:@escaping complateBlockType)->Void
     {
-        YKSwiftNetworking.executeByMethod(method: .POST, url: url, params: params, complate: complate)
+        YKSwiftNetworking.executeByMethod(method: .POST, url: url, params: params,header: header, complate: complate)
     }
     
-    public static func UPLOAD(url:String,header:Dictionary<String,String>?)->Void
+    public static func UPLOAD(url:String,data: Data, filename: String, mimeType: String,params:Dictionary<String,Any>?,header:Dictionary<String,String>?,progress:@escaping progressBlockType, complate:@escaping complateBlockType)->Void
     {
+        _ = YKSwiftNetworking.init().url(url: url).method(method: .POST).params(params: [:]).uploadData(data: data, filename: filename, mimeType: mimeType).progress(progressBlock: progress).uploadDataSignal().mapWithRawData().subscribe(onNext: { result in
+            complate(result,nil);
+        }, onError: { error in
+            complate(nil,error)
+        }, onCompleted: {
+
+        }, onDisposed: {
+
+        })
     }
     
 //    public static func Download(url:String, params:Dictionary<String,Any>?, comp)

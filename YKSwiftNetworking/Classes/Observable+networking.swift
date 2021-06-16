@@ -17,9 +17,6 @@ extension Observable
             if Element is Dictionary<String,Any>{
                 let response = ((Element as! Dictionary<String,Any>)["response"]) as! YKSwiftNetworkResponse
                 return response.rawData as! Element
-            }else if Element is Array<Any>{
-                let response = ((Element as! Dictionary<String,Any>)["response"]) as! YKSwiftNetworkResponse
-                return response.rawData as! Element
             }
             return Element
         }
