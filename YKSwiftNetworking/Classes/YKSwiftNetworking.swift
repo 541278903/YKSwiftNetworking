@@ -278,8 +278,56 @@ public class YKSwiftNetworking:NSObject
                 Alamofire.upload(multipartFormData: { multipartFormData in
                     multipartFormData.append(request.uploadFileData!, withName: "file", fileName: request.uploadName!, mimeType: request.uploadMimeType!)
                 }, to: request.urlStr) { encodingResult in
-                   
+                    switch encodingResult{
+                    case .success(request: let upladtRequest, streamingFromDisk: _, streamFileURL: _):do {
+                        upladtRequest.uploadProgress { progress in
+                            if request.progressBlock != nil {
+                                request.progressBlock!(progress.fractionCompleted)
+                            }
+                        }
+                        
+                        upladtRequest.response { response in
+                            if response.error != nil {
+                                observer.onError(response.error!)
+                                let ykresponse = YKSwiftNetworkResponse.init()
+                                self.saveTask(request: request, response: ykresponse, isException: true)
+                                observer.onCompleted()
+                            }
+                            
+                            let ykresponse = YKSwiftNetworkResponse.init()
+                            ykresponse.rawData = response.data
+                            
+                            if self.handleResponse != nil && !request.disableHandleResponse
+                            {
+                                let error = self.handleResponse!(ykresponse,request)
+                                if error != nil {
+                                    observer.onError(error!)
+                                    self.saveTask(request: request, response: ykresponse, isException: true)
+                                }else{
+                                    observer.onNext(["request":request,"response":ykresponse])
+                                    self.saveTask(request: request, response: ykresponse, isException: false)
+                                }
+                            }else{
+                                observer.onNext(["request":request,"response":ykresponse])
+                                self.saveTask(request: request, response: ykresponse, isException: false)
+                            }
+                            
+                            observer.onCompleted()
+                        }
+                        break
+                    }
+                    case .failure(let error):do {
+                        observer.onError(error)
+                        let ykresponse = YKSwiftNetworkResponse.init()
+                        self.saveTask(request: request, response: ykresponse, isException: true)
+                        observer.onCompleted()
+                        break
+                    }
+
+                    }
                 }
+                
+                
             }else{
                 let error = NSError.init(domain: "com.YKSwiftNetworking", code: -1, userInfo: ["message":"未设置数据"])
                 observer.onError(error)
@@ -287,6 +335,32 @@ public class YKSwiftNetworking:NSObject
             }
             
             self._request = nil
+            
+            return Disposables.create()
+        }
+        return signal
+    }
+    
+    public func downloadDataSignal()->Observable<Any>{
+        
+        
+        let request = self.request.copy() as! YKSwiftNetworkRequest
+        request.header.updateValue("multipart/form-data", forKey: "content-type")
+        let canContinue = self.handleConfigWithRequest(request: request)
+        if !canContinue {
+            self._request = nil
+            return Observable<Any>.empty()
+        }
+    
+        let signal = Observable<Any>.create { observer in
+            
+            let destination = DownloadRequest.suggestedDownloadDestination(for: .documentDirectory)
+            
+            Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header, to: destination).downloadProgress { progress in
+                
+            }.response { response in
+                
+            }
             
             return Disposables.create()
         }
