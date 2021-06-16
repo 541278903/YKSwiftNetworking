@@ -281,12 +281,16 @@ public class YKSwiftNetworking:NSObject
                 }, to: request.urlStr) { encodingResult in
                     switch encodingResult{
                     case .success(request: let upladtRequest, streamingFromDisk: _, streamFileURL: _):do {
+                        
+                        request.task = upladtRequest
+                        
                         upladtRequest.uploadProgress { progress in
                             if request.progressBlock != nil {
                                 request.progressBlock!(progress.fractionCompleted)
                             }
                         }
-                        
+                        request.task = upladtRequest
+
                         upladtRequest.response { response in
                             if response.error != nil {
                                 observer.onError(response.error!)
@@ -294,10 +298,10 @@ public class YKSwiftNetworking:NSObject
                                 self.saveTask(request: request, response: ykresponse, isException: true)
                                 observer.onCompleted()
                             }
-                            
+
                             let ykresponse = YKSwiftNetworkResponse.init()
                             ykresponse.rawData = response.data
-                            
+
                             if self.handleResponse != nil && !request.disableHandleResponse
                             {
                                 let error = self.handleResponse!(ykresponse,request)
@@ -312,7 +316,7 @@ public class YKSwiftNetworking:NSObject
                                 observer.onNext(["request":request,"response":ykresponse])
                                 self.saveTask(request: request, response: ykresponse, isException: false)
                             }
-                            
+
                             observer.onCompleted()
                         }
                         break
@@ -334,7 +338,7 @@ public class YKSwiftNetworking:NSObject
                 observer.onError(error)
                 observer.onCompleted()
             }
-            
+            request.task?.resume()
             self._request = nil
             
             return Disposables.create()
@@ -346,7 +350,6 @@ public class YKSwiftNetworking:NSObject
         
         
         let request = self.request.copy() as! YKSwiftNetworkRequest
-        request.header.updateValue("multipart/form-data", forKey: "content-type")
         let canContinue = self.handleConfigWithRequest(request: request)
         if !canContinue {
             self._request = nil
@@ -392,7 +395,7 @@ public class YKSwiftNetworking:NSObject
     
     public static func executeByMethod(method:YKNetworkRequestMethod, url:String, params:Dictionary<String,Any>?, complate:@escaping complateBlockType)->Void
     {
-        _ = YKSwiftNetworking.init().url(url: url).method(method: method).params(params: params ?? [:]).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().subscribe { result in
+        _ = YKSwiftNetworking.init().url(url: url).method(method: method).params(params: params ?? [:]).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().mapWithRawData().subscribe { result in
             complate(result,nil)
         } onError: { error in
             complate(nil,error)
@@ -413,6 +416,12 @@ public class YKSwiftNetworking:NSObject
     {
         YKSwiftNetworking.executeByMethod(method: .POST, url: url, params: params, complate: complate)
     }
+    
+    public static func UPLOAD(url:String,header:Dictionary<String,String>?)->Void
+    {
+    }
+    
+//    public static func Download(url:String, params:Dictionary<String,Any>?, comp)
     
     
     
