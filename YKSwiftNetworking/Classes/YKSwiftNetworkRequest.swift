@@ -138,7 +138,7 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
     public var startTimeInterval:TimeInterval?
     
     /** 请求Task 当启用假数据返回的时候为空 */
-    public var task:DataRequest? = nil
+    public var task:Request? = nil
     
     /** 下载Task */
     public var downloadTask:URLSessionDownloadTask? = nil

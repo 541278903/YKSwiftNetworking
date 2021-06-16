@@ -208,6 +208,28 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
+//    MARK:扩展内容
+    
+    public func get(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .GET)
+    }
+    
+    public func post(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .POST)
+    }
+    
+    public func put(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .PUT)
+    }
+    
+    public func delete(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .DELETE)
+    }
+    
+    public func patch(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .PATCH)
+    }
+    
 //    MARK:执行内容
     
     public func execute()->Observable<Any>{
@@ -358,40 +380,56 @@ public class YKSwiftNetworking:NSObject
     
         let signal = Observable<Any>.create { observer in
             
-            let destination = DownloadRequest.suggestedDownloadDestination(for: .documentDirectory)
             
-            Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header, to: destination).downloadProgress { progress in
+            let destination = DownloadRequest.suggestedDownloadDestination(for: .cachesDirectory)
+            
+            let documentURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let fileURL = documentURL.appendingPathComponent(request.destPath)
+            
+            request.task = Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header, to: destination).downloadProgress { progress in
                 
+                if request.progressBlock != nil {
+                    request.progressBlock!(progress.fractionCompleted)
+                }
             }.response { response in
                 
+                if response.error != nil {
+                    observer.onError(response.error!)
+                    let ykresponse = YKSwiftNetworkResponse.init()
+                    self.saveTask(request: request, response: ykresponse, isException: true)
+                    observer.onCompleted()
+                }
+                
+                
+                let ykresponse = YKSwiftNetworkResponse.init()
+                ykresponse.rawData = response.destinationURL!.relativeString
+                
+                if self.handleResponse != nil && !request.disableHandleResponse
+                {
+                    let error = self.handleResponse!(ykresponse,request)
+                    if error != nil {
+                        observer.onError(error!)
+                        self.saveTask(request: request, response: ykresponse, isException: true)
+                    }else{
+                        observer.onNext(["request":request,"response":ykresponse])
+                        self.saveTask(request: request, response: ykresponse, isException: false)
+                    }
+                }else{
+                    observer.onNext(["request":request,"response":ykresponse])
+                    self.saveTask(request: request, response: ykresponse, isException: false)
+                }
+                
+                observer.onCompleted()
             }
+            request.task?.resume()
+            self._request = nil
             
             return Disposables.create()
         }
         return signal
     }
     
-//    定义内容
-    
-    public func get(url:String)->YKSwiftNetworking {
-        return self.url(url: url).method(method: .GET)
-    }
-    
-    public func post(url:String)->YKSwiftNetworking {
-        return self.url(url: url).method(method: .POST)
-    }
-    
-    public func put(url:String)->YKSwiftNetworking {
-        return self.url(url: url).method(method: .PUT)
-    }
-    
-    public func delete(url:String)->YKSwiftNetworking {
-        return self.url(url: url).method(method: .DELETE)
-    }
-    
-    public func patch(url:String)->YKSwiftNetworking {
-        return self.url(url: url).method(method: .PATCH)
-    }
+//    MARK:直接请求独立响应式
     
     public static func executeByMethod(method:YKNetworkRequestMethod, url:String, params:Dictionary<String,Any>?,header:Dictionary<String,String>?, complate:@escaping complateBlockType)->Void
     {
@@ -429,6 +467,19 @@ public class YKSwiftNetworking:NSObject
 
         }, onDisposed: {
 
+        })
+    }
+    
+    public static func DOWNLOAD(url:String,destPath:String,progress:@escaping progressBlockType, complate:@escaping complateBlockType)->Void
+    {
+        _ = YKSwiftNetworking.init().url(url: url).method(method: .POST).downloadDestPath(destPath: destPath).progress(progressBlock: progress).disableDynamicParams().disableDynamicHeader().disableHandleResponse().downloadDataSignal().mapWithRawData().subscribe(onNext: { result in
+            complate(result,nil)
+        }, onError: { error in
+            complate(nil,error)
+        }, onCompleted: {
+            
+        }, onDisposed: {
+            
         })
     }
     
