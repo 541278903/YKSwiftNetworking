@@ -95,9 +95,6 @@ public class YKSwiftNetworking:NSObject
      */
     open var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest) -> Dictionary<String,String>)? = nil
     
-    public func get(url:String)->YKSwiftNetworking {
-        return self.url(url: url).method(method: .GET)
-    }
     
     
     private let RGBAColor: (CGFloat, CGFloat, CGFloat, CGFloat) -> UIColor = {red, green, blue, alpha in
@@ -114,6 +111,8 @@ public class YKSwiftNetworking:NSObject
         self.defaultParams = defaultParams
         self.handleResponse = handleResponse
     }
+    
+//    MARK:设置请求属性
     
     public func url(url:String)->YKSwiftNetworking{
         var urlString:String = ""
@@ -208,6 +207,8 @@ public class YKSwiftNetworking:NSObject
         self.request.progressBlock = progressBlock
         return self
     }
+    
+//    MARK:执行内容
     
     public func execute()->Observable<Any>{
         
@@ -366,6 +367,56 @@ public class YKSwiftNetworking:NSObject
         }
         return signal
     }
+    
+//    定义内容
+    
+    public func get(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .GET)
+    }
+    
+    public func post(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .POST)
+    }
+    
+    public func put(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .PUT)
+    }
+    
+    public func delete(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .DELETE)
+    }
+    
+    public func patch(url:String)->YKSwiftNetworking {
+        return self.url(url: url).method(method: .PATCH)
+    }
+    
+    public static func executeByMethod(method:YKNetworkRequestMethod, url:String, params:Dictionary<String,Any>?, complate:@escaping complateBlockType)->Void
+    {
+        _ = YKSwiftNetworking.init().url(url: url).method(method: method).params(params: params ?? [:]).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().subscribe { result in
+            complate(result,nil)
+        } onError: { error in
+            complate(nil,error)
+        } onCompleted: {
+            
+        } onDisposed: {
+            
+        }
+
+    }
+    
+    public static func GET(url:String, params:Dictionary<String,Any>?, complate:@escaping complateBlockType)->Void
+    {
+        YKSwiftNetworking.executeByMethod(method: .GET, url: url, params: params, complate: complate)
+    }
+    
+    public static func POST(url:String, params:Dictionary<String,Any>?, complate:@escaping complateBlockType)->Void
+    {
+        YKSwiftNetworking.executeByMethod(method: .POST, url: url, params: params, complate: complate)
+    }
+    
+    
+    
+    
     
 //    MARK:回调处理
     
