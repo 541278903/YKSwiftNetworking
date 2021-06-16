@@ -103,8 +103,16 @@ public class YKSwiftNetworking:NSObject
     
     public override init() {
         super.init()
+        
+        
     }
     
+    /// 构造
+    /// - Parameters:
+    ///   - defaultHeader: 默认头文件
+    ///   - defaultParams: 默认菜蔬
+    ///   - prefixUrl: 默认连接头
+    ///   - handleResponse: 默认处理方式
     public convenience init(_ defaultHeader:Dictionary<String,String>?, _ defaultParams:Dictionary<String,Any>?, _ prefixUrl:String?, _ handleResponse:@escaping((_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Error?) ) {
         self.init()
         self.defaultHeader = defaultHeader
@@ -114,6 +122,9 @@ public class YKSwiftNetworking:NSObject
     
 //    MARK:设置请求属性
     
+    /// 本次请求地址
+    /// - Parameter url: 地址
+    /// - Returns: networking
     public func url(url:String)->YKSwiftNetworking{
         var urlString:String = ""
         
@@ -150,6 +161,9 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
+    /// 本次请求参数
+    /// - Parameter params: 参数
+    /// - Returns: networking
     public func params(params:Dictionary<String,Any>)->YKSwiftNetworking{
         
         for (key,value) in params {
@@ -158,42 +172,63 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
+    /// 本次请求方式
+    /// - Parameter method: 请求方式
+    /// - Returns: networking
     public func method(method:YKNetworkRequestMethod)->YKSwiftNetworking{
         
         self.request.method = method
         return self
     }
     
+    /// 本次请求不默认使用动态参数
+    /// - Returns: networking
     public func disableDynamicParams()->YKSwiftNetworking{
         
         self.request.disableDynamicParams = true
         return self
     }
     
+    /// 本次请求默认不适用统一处理方式
+    /// - Returns: networking
     public func disableHandleResponse()->YKSwiftNetworking{
         
         self.request.disableHandleResponse = true
         return self
     }
     
+    /// 本次请求忽略动态头文件
+    /// - Returns: networking
     public func disableDynamicHeader()->YKSwiftNetworking{
         
         self.request.disableDynamicHeader = true
         return self
     }
     
+    /// 最小响应时间
+    /// - Parameter repeatInterval: 时间默认300
+    /// - Returns: networking
     public func minRepeatInterval(repeatInterval:Double)->YKSwiftNetworking{
         
         self.request.repeatRequestInterval = repeatInterval
         return self
     }
     
+    /// 下载地址
+    /// - Parameter destPath: 缓存地址文件夹
+    /// - Returns: networking
     public func downloadDestPath(destPath:String)->YKSwiftNetworking{
         
         self.request.destPath = destPath
         return self
     }
     
+    /// 上传设置
+    /// - Parameters:
+    ///   - data: 上传数据
+    ///   - filename: 上传文件名
+    ///   - mimeType: 上传文件类型
+    /// - Returns: networking
     public func uploadData(data:Data, filename:String, mimeType:String)->YKSwiftNetworking{
         
         self.request.uploadFileData = data
@@ -202,6 +237,10 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
+    
+    /// 进度
+    /// - Parameter progressBlock: 进度回调
+    /// - Returns: networking
     public func progress(progressBlock:@escaping ((_ progress:Double)->Void))->YKSwiftNetworking
     {
         self.request.progressBlock = progressBlock
@@ -210,28 +249,45 @@ public class YKSwiftNetworking:NSObject
     
 //    MARK:扩展内容
     
+    /// get请求
+    /// - Parameter url: 地址
+    /// - Returns: networking
     public func get(url:String)->YKSwiftNetworking {
         return self.url(url: url).method(method: .GET)
     }
     
+    /// post请求
+    /// - Parameter url: 地址
+    /// - Returns: networking
     public func post(url:String)->YKSwiftNetworking {
         return self.url(url: url).method(method: .POST)
     }
     
+    /// put请求
+    /// - Parameter url: 地址
+    /// - Returns: networking
     public func put(url:String)->YKSwiftNetworking {
         return self.url(url: url).method(method: .PUT)
     }
     
+    /// delete请求
+    /// - Parameter url: 地址
+    /// - Returns: networking
     public func delete(url:String)->YKSwiftNetworking {
         return self.url(url: url).method(method: .DELETE)
     }
     
+    /// patch请求
+    /// - Parameter url: 地址
+    /// - Returns: networking
     public func patch(url:String)->YKSwiftNetworking {
         return self.url(url: url).method(method: .PATCH)
     }
     
 //    MARK:执行内容
     
+    /// 普通请求响应
+    /// - Returns: 响应
     public func execute()->Observable<Any>{
         
         let request = self.request.copy() as! YKSwiftNetworkRequest
@@ -284,6 +340,9 @@ public class YKSwiftNetworking:NSObject
         return signal
     }
     
+    /// 上传响应
+    /// - warning: 请务必调用uploadData(data:Data, filename:String, mimeType:String)
+    /// - Returns: 响应
     public func uploadDataSignal()->Observable<Any>{
         
         
@@ -368,6 +427,9 @@ public class YKSwiftNetworking:NSObject
         return signal
     }
     
+    /// 下载响应
+    /// - warning: 请务必调用downloadDestPath
+    /// - Returns: 响应
     public func downloadDataSignal()->Observable<Any>{
         
         
@@ -380,11 +442,28 @@ public class YKSwiftNetworking:NSObject
     
         let signal = Observable<Any>.create { observer in
             
-            
-            let destination = DownloadRequest.suggestedDownloadDestination(for: .cachesDirectory)
-            
-            let documentURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            let fileURL = documentURL.appendingPathComponent(request.destPath)
+            let destination: DownloadRequest.DownloadFileDestination = { url, options in
+                var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+
+                let urllastPathComponent = URL.init(string: request.urlStr)!.lastPathComponent
+                
+                if request.destPath.count > 0 {
+                    documentsURL.appendPathComponent(request.destPath)
+                }
+                var isDic: ObjCBool = ObjCBool(false)
+                let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
+                if exists && isDic.boolValue {
+                    // Exists. Directory.
+                    documentsURL.appendPathComponent("\(urllastPathComponent)")
+                } else if exists {
+                    // Exists.
+                } else {
+                    try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
+                    documentsURL.appendPathComponent("\(urllastPathComponent)")
+
+                }
+                return (documentsURL, [.createIntermediateDirectories])
+           }
             
             request.task = Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header, to: destination).downloadProgress { progress in
                 
@@ -431,6 +510,14 @@ public class YKSwiftNetworking:NSObject
     
 //    MARK:直接请求独立响应式
     
+    /// 不使用响应普通正常请求
+    /// - Parameters:
+    ///   - method: 请求方式
+    ///   - url: 请求地址
+    ///   - params: 请求参数
+    ///   - header: 请求头文件
+    ///   - complate: 请求回调
+    /// - Returns: 空
     public static func executeByMethod(method:YKNetworkRequestMethod, url:String, params:Dictionary<String,Any>?,header:Dictionary<String,String>?, complate:@escaping complateBlockType)->Void
     {
         _ = YKSwiftNetworking.init(header, nil, nil, { response, request in
@@ -447,16 +534,43 @@ public class YKSwiftNetworking:NSObject
 
     }
     
+    
+    /// 不适用响应默认GET请求
+    /// - Parameters:
+    ///   - url: 请求地址
+    ///   - params: 请求参数
+    ///   - header: 请求头文件
+    ///   - complate: 请求方式
+    /// - Returns: 空
     public static func GET(url:String, params:Dictionary<String,Any>?,header:Dictionary<String,String>?, complate:@escaping complateBlockType)->Void
     {
         YKSwiftNetworking.executeByMethod(method: .GET, url: url, params: params,header: header, complate: complate)
     }
     
+    /// 不适用响应默认POST请求
+    /// - Parameters:
+    ///   - url: 请求地址
+    ///   - params: 请求参数
+    ///   - header: 请求头文件
+    ///   - complate: 请求方式
+    /// - Returns: 空
     public static func POST(url:String, params:Dictionary<String,Any>?,header:Dictionary<String,String>?, complate:@escaping complateBlockType)->Void
     {
         YKSwiftNetworking.executeByMethod(method: .POST, url: url, params: params,header: header, complate: complate)
     }
     
+    
+    /// 不适用响应默认上传
+    /// - Parameters:
+    ///   - url: 上传地址
+    ///   - data: 上传数据
+    ///   - filename: 上传文件名
+    ///   - mimeType: 上传文件类型
+    ///   - params: 上传参数
+    ///   - header: 上传头文件
+    ///   - progress: 上传进度
+    ///   - complate: 上传回调
+    /// - Returns: 空
     public static func UPLOAD(url:String,data: Data, filename: String, mimeType: String,params:Dictionary<String,Any>?,header:Dictionary<String,String>?,progress:@escaping progressBlockType, complate:@escaping complateBlockType)->Void
     {
         _ = YKSwiftNetworking.init().url(url: url).method(method: .POST).params(params: [:]).uploadData(data: data, filename: filename, mimeType: mimeType).progress(progressBlock: progress).uploadDataSignal().mapWithRawData().subscribe(onNext: { result in
@@ -470,6 +584,14 @@ public class YKSwiftNetworking:NSObject
         })
     }
     
+    
+    /// 不适用响应默认下载
+    /// - Parameters:
+    ///   - url: 下载地址
+    ///   - destPath: 下载缓存地址
+    ///   - progress: 下载进度
+    ///   - complate: 下载回调
+    /// - Returns: 空
     public static func DOWNLOAD(url:String,destPath:String,progress:@escaping progressBlockType, complate:@escaping complateBlockType)->Void
     {
         _ = YKSwiftNetworking.init().url(url: url).method(method: .POST).downloadDestPath(destPath: destPath).progress(progressBlock: progress).disableDynamicParams().disableDynamicHeader().disableHandleResponse().downloadDataSignal().mapWithRawData().subscribe(onNext: { result in
@@ -482,10 +604,6 @@ public class YKSwiftNetworking:NSObject
             
         })
     }
-    
-//    public static func Download(url:String, params:Dictionary<String,Any>?, comp)
-    
-    
     
     
     
@@ -553,9 +671,12 @@ public class YKSwiftNetworking:NSObject
     public func configWithRequest(request:YKSwiftNetworkRequest)->Void
     {
         //TODO:类似设置serialize
-       let dataRequest =  Alamofire.request("123", method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil)
-        
-        dataRequest.resume()
+        let _:Alamofire.SessionManager = {
+            let configuration = URLSessionConfiguration.default
+            //请求超时时间15秒
+            configuration.timeoutIntervalForRequest = YKSwiftNetworkingConfig.share.timeoutInterval
+            return Alamofire.SessionManager(configuration: configuration)
+        }()
         
     }
     
