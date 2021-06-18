@@ -308,7 +308,7 @@ public class YKSwiftNetworking:NSObject
                 }
                 
                 let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = response.data
+                ykresponse.rawData = self.resultToChang(data: response.data)
                 
                 if self.handleResponse != nil && !request.disableHandleResponse
                 {
@@ -381,7 +381,7 @@ public class YKSwiftNetworking:NSObject
                             }
 
                             let ykresponse = YKSwiftNetworkResponse.init()
-                            ykresponse.rawData = response.data
+                            ykresponse.rawData = self.resultToChang(data: response.data)
 
                             if self.handleResponse != nil && !request.disableHandleResponse
                             {
@@ -609,7 +609,7 @@ public class YKSwiftNetworking:NSObject
     
 //    MARK:回调处理
     
-    public func handleConfigWithRequest(request:YKSwiftNetworkRequest)->Bool
+    private func handleConfigWithRequest(request:YKSwiftNetworkRequest)->Bool
     {
         if request.name == nil || request.name!.count == 0 {
             request.name = UUID.init().uuidString
@@ -668,7 +668,7 @@ public class YKSwiftNetworking:NSObject
         return true
     }
     
-    public func configWithRequest(request:YKSwiftNetworkRequest)->Void
+    private func configWithRequest(request:YKSwiftNetworkRequest)->Void
     {
         //TODO:类似设置serialize
         let _:Alamofire.SessionManager = {
@@ -678,6 +678,34 @@ public class YKSwiftNetworking:NSObject
             return Alamofire.SessionManager(configuration: configuration)
         }()
         
+    }
+    
+    private func resultToChang(data:Any?)->Any?
+    {
+        if data is Data && data != nil {
+            let json = try? JSON.init(data: data as! Data)
+            if json != nil {
+                if json!.dictionary != nil {
+                    
+                    return json!.dictionaryObject
+                }else if json!.array != nil {
+                    
+                    return json!.arrayObject
+                }else if json!.string != nil {
+                    
+                    return json!.stringValue
+                }else if json!.bool != nil {
+                    
+                    return json!.boolValue
+                }else if json!.number != nil {
+                    
+                    return json!.numberValue
+                }else if json!.error != nil {
+                    return json!.error!
+                }
+            }
+        }
+        return data
     }
     
     public func cancelAllRequest()
