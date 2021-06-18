@@ -702,6 +702,8 @@ public class YKSwiftNetworking:NSObject
                     return json!.numberValue
                 }else if json!.error != nil {
                     return json!.error!
+                }else{
+                    return json!.object
                 }
             }
         }
