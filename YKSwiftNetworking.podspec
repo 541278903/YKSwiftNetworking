@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '9.0'
   s.dependency  'Alamofire', '4.9.1'
   s.dependency  'RxSwift'
-  s.dependency  "YKSwiftBaseTools/SwiftyJSON"
+  s.dependency  "SwiftyJSON"
 
   s.source_files = 'YKSwiftNetworking/Classes/**/*'
   

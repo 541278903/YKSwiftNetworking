@@ -7,7 +7,7 @@
 
 import Foundation
 import Alamofire
-import YKSwiftBaseTools
+import SwiftyJSON
 import RxSwift
 
 public enum YKNetworkRequestMethod {
