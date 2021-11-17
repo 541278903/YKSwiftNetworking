@@ -11,44 +11,6 @@ import Alamofire
 
 public class YKSwiftNetworkRequest:NSObject,NSCopying
 {
-    
-//    public func encode(with coder: NSCoder) {
-//        coder.encode(urlStr, forKey: "urlStr")
-//        coder.encode(params, forKey: "params")
-//        coder.encode(header, forKey: "header")
-//        coder.encode(method, forKey: "method")
-//        coder.encode(methodStr, forKey: "methodStr")
-//        coder.encode(disableDynamicParams, forKey: "disableDynamicParams")
-//        coder.encode(disableDynamicHeader, forKey: "disableDynamicHeader")
-//        coder.encode(disableHandleResponse, forKey: "disableHandleResponse")
-//        coder.encode(progressBlock, forKey: "progressBlock")
-//        coder.encode(repeatRequestInterval, forKey: "repeatRequestInterval")
-//        coder.encode(destPath, forKey: "destPath")
-//        coder.encode(uploadFileData, forKey: "uploadFileData")
-//        coder.encode(uploadName, forKey: "uploadName")
-//        coder.encode(uploadMimeType, forKey: "uploadMimeType")
-//        coder.encode(startTimeInterval, forKey: "startTimeInterval")
-//    }
-//
-//    public required init?(coder: NSCoder) {
-//        urlStr = (coder.decodeObject(forKey: "urlStr") as? String) ?? ""
-//        params = (coder.decodeObject(forKey: "params") as? Dictionary<String,Any>) ?? [:]
-//        header = (coder.decodeObject(forKey: "header") as? Dictionary<String,Any>) ?? [:]
-//        method = (coder.decodeObject(forKey: "method") as? YKNetworkRequestMethod) ?? .GET
-//        disableDynamicParams = (coder.decodeObject(forKey: "disableDynamicParams") as? Bool) ?? false
-//        disableDynamicHeader = (coder.decodeObject(forKey: "disableDynamicHeader") as? Bool) ?? false
-//        disableHandleResponse = (coder.decodeObject(forKey: "disableHandleResponse") as? Bool) ?? false
-//        progressBlock = (coder.decodeObject(forKey: "progressBlock") as? (_ progress:Double)->Void) ?? { progress in
-//
-//        }
-//        repeatRequestInterval = (coder.decodeObject(forKey: "repeatRequestInterval") as? Double) ?? 300.0
-//        destPath = (coder.decodeObject(forKey: "destPath") as? String) ?? ""
-//        uploadFileData = coder.decodeObject(forKey: "uploadFileData") as? Data
-//        uploadName = coder.decodeObject(forKey: "uploadName") as? String
-//        uploadMimeType = coder.decodeObject(forKey: "uploadMimeType") as? String
-//        startTimeInterval = coder.decodeObject(forKey: "startTimeInterval") as? TimeInterval
-//
-//    }
     public func copy(with zone: NSZone? = nil) -> Any {
         let request:YKSwiftNetworkRequest = YKSwiftNetworkRequest.init()
         request.name = self.name
