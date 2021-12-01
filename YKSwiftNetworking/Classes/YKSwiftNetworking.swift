@@ -656,9 +656,9 @@ public class YKSwiftNetworking:NSObject
             }
         }
         
-        if (self.handleResponse == nil && config.handleResponse != nil) {
-            self.handleResponse = config.handleResponse!
-        }
+//        if (self.handleResponse == nil && config.handleResponse != nil) {
+//            self.handleResponse = config.handleResponse!
+//        }
         
         request.startTimeInterval = Date.init(timeIntervalSinceNow: 0).timeIntervalSince1970
         
