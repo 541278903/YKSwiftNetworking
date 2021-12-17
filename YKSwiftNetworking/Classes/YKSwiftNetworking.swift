@@ -7,7 +7,6 @@
 
 import Foundation
 import Alamofire
-import SwiftyJSON
 import RxSwift
 
 public enum YKNetworkRequestMethod {
@@ -229,11 +228,12 @@ public class YKSwiftNetworking:NSObject
     ///   - filename: 上传文件名
     ///   - mimeType: 上传文件类型
     /// - Returns: networking
-    public func uploadData(data:Data, filename:String, mimeType:String)->YKSwiftNetworking{
+    public func uploadData(data:Data, filename:String, mimeType:String, formDataName:String)->YKSwiftNetworking{
         
         self.request.uploadFileData = data
         self.request.uploadName = filename
         self.request.uploadMimeType = mimeType
+        self.request.formDataName = formDataName
         return self
     }
     
@@ -298,40 +298,40 @@ public class YKSwiftNetworking:NSObject
         }
     
         let signal = Observable<Any>.create { observer in
-            request.task = Alamofire.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header).response { response in
+            request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
                 
-                if response.error != nil {
-                    observer.onError(response.error!)
-                    let ykresponse = YKSwiftNetworkResponse.init()
-                    self.saveTask(request: request, response: ykresponse, isException: true)
-                    observer.onCompleted()
+                if request.progressBlock != nil {
+                    request.progressBlock!(progress)
                 }
-                
-                let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = self.resultToChang(data: response.data)
-                
+            }, successCallBack: { response, request in
+                var error:Error? = nil
                 if self.handleResponse != nil && !request.disableHandleResponse
                 {
-                    let error = self.handleResponse!(ykresponse,request)
+                    error = self.handleResponse!(response,request)
                     if error != nil {
                         observer.onError(error!)
-                        self.saveTask(request: request, response: ykresponse, isException: true)
                     }else{
-                        observer.onNext(["request":request,"response":ykresponse])
-                        self.saveTask(request: request, response: ykresponse, isException: false)
+                        observer.onNext(["request":request,"response":response])
                     }
                 }else{
-                    observer.onNext(["request":request,"response":ykresponse])
-                    self.saveTask(request: request, response: ykresponse, isException: false)
+                    observer.onNext(["request":request,"response":response])
                 }
                 
+                self.saveTask(request: request, response: response, isException: error != nil)
                 observer.onCompleted()
-            }.downloadProgress { progress in
-                if request.progressBlock != nil {
-                    request.progressBlock!(progress.fractionCompleted)
+            }, failureCallBack: { request, isCache, responseObject, error in
+                
+                guard let err = error else {
+                    return
                 }
-            }
-            request.task?.resume()
+                
+                observer.onError(err)
+                let ykresponse = YKSwiftNetworkResponse()
+                ykresponse.rawData = responseObject
+                self.saveTask(request: request, response: ykresponse, isException: true)
+                observer.onCompleted()
+            })
+            
             self._request = nil
             
             return Disposables.create()
@@ -356,66 +356,41 @@ public class YKSwiftNetworking:NSObject
     
         let signal = Observable<Any>.create { observer in
            
-            if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil{
-                Alamofire.upload(multipartFormData: { multipartFormData in
-                    multipartFormData.append(request.uploadFileData!, withName: "file", fileName: request.uploadName!, mimeType: request.uploadMimeType!)
-                }, to: request.urlStr) { encodingResult in
-                    switch encodingResult{
-                    case .success(request: let upladtRequest, streamingFromDisk: _, streamFileURL: _):do {
-                        
-                        request.task = upladtRequest
-                        
-                        upladtRequest.uploadProgress { progress in
-                            if request.progressBlock != nil {
-                                request.progressBlock!(progress.fractionCompleted)
-                            }
-                        }
-                        request.task = upladtRequest
-
-                        upladtRequest.response { response in
-                            if response.error != nil {
-                                observer.onError(response.error!)
-                                let ykresponse = YKSwiftNetworkResponse.init()
-                                self.saveTask(request: request, response: ykresponse, isException: true)
-                                observer.onCompleted()
-                            }
-
-                            let ykresponse = YKSwiftNetworkResponse.init()
-                            ykresponse.rawData = self.resultToChang(data: response.data)
-
-                            if self.handleResponse != nil && !request.disableHandleResponse
-                            {
-                                let error = self.handleResponse!(ykresponse,request)
-                                if error != nil {
-                                    observer.onError(error!)
-                                    self.saveTask(request: request, response: ykresponse, isException: true)
-                                }else{
-                                    observer.onNext(["request":request,"response":ykresponse])
-                                    self.saveTask(request: request, response: ykresponse, isException: false)
-                                }
-                            }else{
-                                observer.onNext(["request":request,"response":ykresponse])
-                                self.saveTask(request: request, response: ykresponse, isException: false)
-                            }
-
-                            observer.onCompleted()
-                        }
-                        break
-                    }
-                    case .failure(let error):do {
-                        observer.onError(error)
-                        let ykresponse = YKSwiftNetworkResponse.init()
-                        self.saveTask(request: request, response: ykresponse, isException: true)
-                        observer.onCompleted()
-                        break
-                    }
-
-                    }
-                }
+            if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil && request.formDataName != nil{
                 
+                YKSwiftBaseNetworking.upload(request: request) { progress in
+                    
+                    if request.progressBlock != nil {
+                        request.progressBlock!(progress)
+                    }
+                } successCallBack: { response, request in
+                
+                    var error:Error? = nil
+                    if self.handleResponse != nil && !request.disableHandleResponse
+                    {
+                        error = self.handleResponse!(response,request)
+                        if error != nil {
+                            observer.onError(error!)
+                        }else{
+                            observer.onNext(["request":request,"response":response])
+                        }
+                    }else{
+                        observer.onNext(["request":request,"response":response])
+                    }
+                    self.saveTask(request: request, response: response, isException: error != nil)
+                    observer.onCompleted()
+                } failureCallBack: { request, isCache, responseObject, error in
+                    
+                    observer.onError(error!)
+                    let ykresponse = YKSwiftNetworkResponse.init()
+//                    ykresponse.code = error.co
+                    self.saveTask(request: request, response: ykresponse, isException: true)
+                    observer.onCompleted()
+                }
+
                 
             }else{
-                let error = NSError.init(domain: "com.YKSwiftNetworking", code: -1, userInfo: ["message":"未设置数据"])
+                let error = NSError.init(domain: "com.YKSwiftNetworking", code: -1, userInfo: [NSLocalizedDescriptionKey:"未设置数据:上传前请先调用uploadData()方法"])
                 observer.onError(error)
                 observer.onCompleted()
             }
@@ -442,66 +417,37 @@ public class YKSwiftNetworking:NSObject
     
         let signal = Observable<Any>.create { observer in
             
-            let destination: DownloadRequest.DownloadFileDestination = { url, options in
-                var documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-
-                let urllastPathComponent = URL.init(string: request.urlStr)!.lastPathComponent
-                
-                if request.destPath.count > 0 {
-                    documentsURL.appendPathComponent(request.destPath)
-                }
-                var isDic: ObjCBool = ObjCBool(false)
-                let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
-                if exists && isDic.boolValue {
-                    // Exists. Directory.
-                    documentsURL.appendPathComponent("\(urllastPathComponent)")
-                } else if exists {
-                    // Exists.
-                } else {
-                    try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
-                    documentsURL.appendPathComponent("\(urllastPathComponent)")
-
-                }
-                return (documentsURL, [.createIntermediateDirectories])
-           }
-            
-            request.task = Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header, to: destination).downloadProgress { progress in
+            request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
                 
                 if request.progressBlock != nil {
-                    request.progressBlock!(progress.fractionCompleted)
-                }
-            }.response { response in
-                
-                if response.error != nil {
-                    observer.onError(response.error!)
-                    let ykresponse = YKSwiftNetworkResponse.init()
-                    self.saveTask(request: request, response: ykresponse, isException: true)
-                    observer.onCompleted()
+                    request.progressBlock!(progress)
                 }
                 
+            }, successCallBack: { response, request in
                 
-                let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = response.destinationURL!.relativeString
-                
+                var error:Error? = nil
                 if self.handleResponse != nil && !request.disableHandleResponse
                 {
-                    let error = self.handleResponse!(ykresponse,request)
+                    error = self.handleResponse!(response,request)
                     if error != nil {
                         observer.onError(error!)
-                        self.saveTask(request: request, response: ykresponse, isException: true)
                     }else{
-                        observer.onNext(["request":request,"response":ykresponse])
-                        self.saveTask(request: request, response: ykresponse, isException: false)
+                        observer.onNext(["request":request,"response":response])
                     }
                 }else{
-                    observer.onNext(["request":request,"response":ykresponse])
-                    self.saveTask(request: request, response: ykresponse, isException: false)
+                    observer.onNext(["request":request,"response":response])
                 }
-                
+                self.saveTask(request: request, response: response, isException: error != nil)
                 observer.onCompleted()
-            }
-            request.task?.resume()
+            }, failureCallBack: { request, isCache, responseObject, error in
+                
+                observer.onError(error!)
+                let ykresponse = YKSwiftNetworkResponse.init()
+                self.saveTask(request: request, response: ykresponse, isException: true)
+                observer.onCompleted()
+            })
             self._request = nil
+            
             
             return Disposables.create()
         }
@@ -571,9 +517,9 @@ public class YKSwiftNetworking:NSObject
     ///   - progress: 上传进度
     ///   - complate: 上传回调
     /// - Returns: 空
-    public static func UPLOAD(url:String,data: Data, filename: String, mimeType: String,params:Dictionary<String,Any>?,header:Dictionary<String,String>?,progress:@escaping progressBlockType, complate:@escaping complateBlockType)->Void
+    public static func UPLOAD(url:String,data: Data, filename: String, mimeType: String, formDataName:String,params:Dictionary<String,Any>?,header:Dictionary<String,String>?,progress:@escaping progressBlockType, complate:@escaping complateBlockType)->Void
     {
-        _ = YKSwiftNetworking.init().url(url: url).method(method: .POST).params(params: [:]).uploadData(data: data, filename: filename, mimeType: mimeType).progress(progressBlock: progress).uploadDataSignal().mapWithRawData().subscribe(onNext: { result in
+        _ = YKSwiftNetworking.init().url(url: url).method(method: .POST).params(params: [:]).uploadData(data: data, filename: filename, mimeType: mimeType, formDataName: formDataName).progress(progressBlock: progress).uploadDataSignal().mapWithRawData().subscribe(onNext: { result in
             complate(result,nil);
         }, onError: { error in
             complate(nil,error)
@@ -680,35 +626,6 @@ public class YKSwiftNetworking:NSObject
         
     }
     
-    private func resultToChang(data:Any?)->Any?
-    {
-        if data is Data && data != nil {
-            let json = try? JSON.init(data: data as! Data)
-            if json != nil {
-                if json!.dictionary != nil {
-                    
-                    return json!.dictionaryObject
-                }else if json!.array != nil {
-                    
-                    return json!.arrayObject
-                }else if json!.string != nil {
-                    
-                    return json!.stringValue
-                }else if json!.bool != nil {
-                    
-                    return json!.boolValue
-                }else if json!.number != nil {
-                    
-                    return json!.numberValue
-                }else if json!.error != nil {
-                    return json!.error!
-                }else{
-                    return json!.object
-                }
-            }
-        }
-        return data
-    }
     
     public func cancelAllRequest()
     {

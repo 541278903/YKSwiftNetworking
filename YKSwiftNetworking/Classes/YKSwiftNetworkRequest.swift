@@ -30,6 +30,7 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
         request.startTimeInterval = self.startTimeInterval
         request.task = self.task
         request.downloadTask = self.downloadTask
+        request.formDataName = self.formDataName
         return request
     }
     
@@ -92,6 +93,9 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
     
     /// 上传文件名
     public var uploadName:String?
+    
+    /// formdata的名字
+    public var formDataName:String?
     
     /// mimetype
     public var uploadMimeType:String?
