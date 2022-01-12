@@ -284,6 +284,11 @@ public class YKSwiftNetworking:NSObject
         return self.url(url: url).method(method: .PATCH)
     }
     
+    func showloading(_ isShow:Bool) -> YKSwiftNetworking {
+        self.request.isShowLoading = isShow
+        return self
+    }
+    
 //    MARK:执行内容
     
     /// 普通请求响应

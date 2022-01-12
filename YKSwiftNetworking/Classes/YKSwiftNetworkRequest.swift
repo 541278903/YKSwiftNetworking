@@ -31,6 +31,7 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
         request.task = self.task
         request.downloadTask = self.downloadTask
         request.formDataName = self.formDataName
+        request.isShowLoading = self.isShowLoading
         return request
     }
     
@@ -108,6 +109,8 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
     
     /** 下载Task */
     public var downloadTask:URLSessionDownloadTask? = nil
+    
+    public var isShowLoading:Bool = true
     
     public override init() {
         super.init()

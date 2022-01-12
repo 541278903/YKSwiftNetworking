@@ -35,6 +35,9 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         
         task.resume()
+        if request.isShowLoading {
+            
+        }
         return task
     }
     
