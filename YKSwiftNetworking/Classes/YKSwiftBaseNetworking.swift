@@ -15,17 +15,17 @@ internal class YKSwiftBaseNetworking: NSObject {
     {
         configWith(request: request)
         
-        let task = Alamofire.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header).response { response in
+        let task = Alamofire.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header).response { [weak request] response in
             
             if response.error != nil {
-                failureCallBack(request,false,nil,response.error)
+                failureCallBack(request!,false,nil,response.error)
             } else {
                 let ykresponse = YKSwiftNetworkResponse.init()
                 ykresponse.rawData = self.resultToChang(data: response.data)
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 
-                successCallBack(ykresponse,request)
+                successCallBack(ykresponse,request!)
             }
             
         }.downloadProgress { progress in
@@ -45,30 +45,30 @@ internal class YKSwiftBaseNetworking: NSObject {
     {
         configWith(request: request)
         
-        Alamofire.upload(multipartFormData: { multipartFormData in
-            multipartFormData.append(request.uploadFileData!, withName: request.formDataName!, fileName: request.uploadName!, mimeType: request.uploadMimeType!)
-        }, to: request.urlStr) { encodingResult in
+        Alamofire.upload(multipartFormData: { [weak request] multipartFormData in
+            multipartFormData.append(request!.uploadFileData!, withName: request!.formDataName!, fileName: request!.uploadName!, mimeType: request!.uploadMimeType!)
+        }, to: request.urlStr) { [weak request] encodingResult in
             switch encodingResult{
                 case .success(request: let upladtRequest, streamingFromDisk: _, streamFileURL: _):do {
-                    request.task = upladtRequest
+                    request!.task = upladtRequest
                     upladtRequest.uploadProgress { progress in
                         progressCallBack(progress.fractionCompleted)
                     }
                     upladtRequest.response { response in
                         if response.error != nil {
-                            failureCallBack(request,false,nil,response.error)
+                            failureCallBack(request!,false,nil,response.error)
                         } else {
                             let ykresponse = YKSwiftNetworkResponse.init()
                             ykresponse.rawData = self.resultToChang(data: response.data)
                             ykresponse.isCache = false
                             ykresponse.code = response.response?.statusCode ?? 0
-                            successCallBack(ykresponse,request)
+                            successCallBack(ykresponse,request!)
                         }
                     }
                     break
                 }
                 case .failure(let error):do {
-                    failureCallBack(request,false,nil,error)
+                    failureCallBack(request!,false,nil,error)
                     break
                 }
             }
@@ -79,13 +79,13 @@ internal class YKSwiftBaseNetworking: NSObject {
     {
         configWith(request: request)
             
-        let destination: DownloadRequest.DownloadFileDestination = { url, options in
+        let destination: DownloadRequest.DownloadFileDestination = { [weak request] url, options in
             var documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
 
-            let urllastPathComponent = URL.init(string: request.urlStr)!.lastPathComponent
+            let urllastPathComponent = URL.init(string: request!.urlStr)!.lastPathComponent
             
-            if request.destPath.count > 0 {
-                documentsURL.appendPathComponent(request.destPath)
+            if request!.destPath.count > 0 {
+                documentsURL.appendPathComponent(request!.destPath)
             }
             var isDic: ObjCBool = ObjCBool(false)
             let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
@@ -104,16 +104,16 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         let task = Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header, to: destination).downloadProgress { progress in
             progressCallBack(progress.fractionCompleted)
-        }.response { response in
+        }.response { [weak request] response in
             
             if response.error != nil {
-                failureCallBack(request,false,nil,response.error)
+                failureCallBack(request!,false,nil,response.error)
             } else {
                 let ykresponse = YKSwiftNetworkResponse.init()
                 ykresponse.rawData = response.destinationURL!.relativeString
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
-                successCallBack(ykresponse,request)
+                successCallBack(ykresponse,request!)
             }
         }
         task.resume()

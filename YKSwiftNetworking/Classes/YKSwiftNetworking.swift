@@ -302,38 +302,44 @@ public class YKSwiftNetworking:NSObject
             return Observable<Any>.empty()
         }
     
-        let signal = Observable<Any>.create { observer in
-            request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
+        let signal = Observable<Any>.create { [weak request] observer in
+            request!.task = YKSwiftBaseNetworking.request(request: request!, progressCallBack: { progress in
                 
-                if request.progressBlock != nil {
-                    request.progressBlock!(progress)
+                if request!.progressBlock != nil {
+                    request!.progressBlock!(progress)
                 }
-            }, successCallBack: { response, request in
-                var error:Error? = nil
-                if self.handleResponse != nil && !request.disableHandleResponse
-                {
-                    error = self.handleResponse!(response,request)
-                    if error != nil {
-                        observer.onError(error!)
+            }, successCallBack: { [weak self] response, request in
+                
+                if let strongself = self {
+                    var error:Error? = nil
+                    if strongself.handleResponse != nil && !request.disableHandleResponse
+                    {
+                        error = strongself.handleResponse!(response,request)
+                        if error != nil {
+                            observer.onError(error!)
+                        }else{
+                            observer.onNext(["request":request,"response":response])
+                        }
                     }else{
                         observer.onNext(["request":request,"response":response])
                     }
-                }else{
-                    observer.onNext(["request":request,"response":response])
+                    
+                    strongself.saveTask(request: request, response: response, isException: error != nil)
                 }
                 
-                self.saveTask(request: request, response: response, isException: error != nil)
                 observer.onCompleted()
-            }, failureCallBack: { request, isCache, responseObject, error in
+            }, failureCallBack: { [weak self] request, isCache, responseObject, error in
                 
-                guard let err = error else {
-                    return
+                if let err = error {
+                    observer.onError(err)
                 }
                 
-                observer.onError(err)
-                let ykresponse = YKSwiftNetworkResponse()
-                ykresponse.rawData = responseObject
-                self.saveTask(request: request, response: ykresponse, isException: true)
+                if let strongself = self {
+                    let ykresponse = YKSwiftNetworkResponse()
+                    ykresponse.rawData = responseObject
+                    strongself.saveTask(request: request, response: ykresponse, isException: true)
+                }
+                
                 observer.onCompleted()
             })
             
@@ -359,37 +365,44 @@ public class YKSwiftNetworking:NSObject
             return Observable<Any>.empty()
         }
     
-        let signal = Observable<Any>.create { observer in
+        let signal = Observable<Any>.create { [weak request] observer in
            
-            if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil && request.formDataName != nil{
+            if request!.uploadFileData != nil && request!.uploadName != nil && request!.uploadMimeType != nil && request!.formDataName != nil{
                 
-                YKSwiftBaseNetworking.upload(request: request) { progress in
+                YKSwiftBaseNetworking.upload(request: request!) { progress in
                     
-                    if request.progressBlock != nil {
-                        request.progressBlock!(progress)
+                    if request!.progressBlock != nil {
+                        request!.progressBlock!(progress)
                     }
-                } successCallBack: { response, request in
+                } successCallBack: { [weak self] response, request in
                 
-                    var error:Error? = nil
-                    if self.handleResponse != nil && !request.disableHandleResponse
-                    {
-                        error = self.handleResponse!(response,request)
-                        if error != nil {
-                            observer.onError(error!)
+                    if let strongself = self {
+                        var error:Error? = nil
+                        if strongself.handleResponse != nil && !request.disableHandleResponse
+                        {
+                            error = strongself.handleResponse!(response,request)
+                            if error != nil {
+                                observer.onError(error!)
+                            }else{
+                                observer.onNext(["request":request,"response":response])
+                            }
                         }else{
                             observer.onNext(["request":request,"response":response])
                         }
-                    }else{
-                        observer.onNext(["request":request,"response":response])
+                        strongself.saveTask(request: request, response: response, isException: error != nil)
                     }
-                    self.saveTask(request: request, response: response, isException: error != nil)
-                    observer.onCompleted()
-                } failureCallBack: { request, isCache, responseObject, error in
                     
-                    observer.onError(error!)
-                    let ykresponse = YKSwiftNetworkResponse.init()
-//                    ykresponse.code = error.co
-                    self.saveTask(request: request, response: ykresponse, isException: true)
+                    observer.onCompleted()
+                } failureCallBack: { [weak self] request, isCache, responseObject, error in
+                    
+                    if let err = error {
+                        observer.onError(err)
+                    }
+                    
+                    if let strongself = self {
+                        let ykresponse = YKSwiftNetworkResponse.init()
+                        strongself.saveTask(request: request, response: ykresponse, isException: true)
+                    }
                     observer.onCompleted()
                 }
 
@@ -399,7 +412,7 @@ public class YKSwiftNetworking:NSObject
                 observer.onError(error)
                 observer.onCompleted()
             }
-            request.task?.resume()
+            request!.task?.resume()
             self._request = nil
             
             return Disposables.create()
@@ -420,35 +433,42 @@ public class YKSwiftNetworking:NSObject
             return Observable<Any>.empty()
         }
     
-        let signal = Observable<Any>.create { observer in
+        let signal = Observable<Any>.create { [weak request] observer in
             
-            request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
+            request!.task = YKSwiftBaseNetworking.download(request: request!, progressCallBack: { progress in
                 
-                if request.progressBlock != nil {
-                    request.progressBlock!(progress)
+                if request!.progressBlock != nil {
+                    request!.progressBlock!(progress)
                 }
                 
-            }, successCallBack: { response, request in
+            }, successCallBack: { [weak self] response, request in
                 
-                var error:Error? = nil
-                if self.handleResponse != nil && !request.disableHandleResponse
-                {
-                    error = self.handleResponse!(response,request)
-                    if error != nil {
-                        observer.onError(error!)
+                if let strongself = self {
+                    var error:Error? = nil
+                    if strongself.handleResponse != nil && !request.disableHandleResponse
+                    {
+                        error = strongself.handleResponse!(response,request)
+                        if error != nil {
+                            observer.onError(error!)
+                        }else{
+                            observer.onNext(["request":request,"response":response])
+                        }
                     }else{
                         observer.onNext(["request":request,"response":response])
                     }
-                }else{
-                    observer.onNext(["request":request,"response":response])
+                    strongself.saveTask(request: request, response: response, isException: error != nil)
                 }
-                self.saveTask(request: request, response: response, isException: error != nil)
                 observer.onCompleted()
-            }, failureCallBack: { request, isCache, responseObject, error in
+            }, failureCallBack: { [weak self] request, isCache, responseObject, error in
+                if let err = error {
+                    
+                    observer.onError(err)
+                }
+                if let strongself = self {
+                    let ykresponse = YKSwiftNetworkResponse.init()
+                    strongself.saveTask(request: request, response: ykresponse, isException: true)
+                }
                 
-                observer.onError(error!)
-                let ykresponse = YKSwiftNetworkResponse.init()
-                self.saveTask(request: request, response: ykresponse, isException: true)
                 observer.onCompleted()
             })
             self._request = nil
