@@ -180,10 +180,12 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
-    public func header(_ header: Dictionary<String,Any>?) -> YKSwiftNetworking {
+    public func header(_ header: Dictionary<String,String>?) -> YKSwiftNetworking {
         if let hea = header {
             self.inputHeaders = hea
-            self.request.setValuesForKeys(hea)
+            for (key,value) in hea {
+                self.request.header[key] = value
+            }
         }
         return self
     }
@@ -318,10 +320,17 @@ public class YKSwiftNetworking:NSObject
         }
     
         let signal = Observable<Any>.create { [weak request] observer in
+            
+            var progressBlock:((_ progress:Double)->Void)?
+            if let proBlock = request!.progressBlock {
+                progressBlock = proBlock
+            }
+            
+            
             request!.task = YKSwiftBaseNetworking.request(request: request!, progressCallBack: { progress in
                 
-                if request!.progressBlock != nil {
-                    request!.progressBlock!(progress)
+                if let block = progressBlock {
+                    block(progress)
                 }
             }, successCallBack: { [weak self] response, request in
                 
