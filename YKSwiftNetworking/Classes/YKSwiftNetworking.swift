@@ -100,6 +100,9 @@ public class YKSwiftNetworking:NSObject
      */
     open var dynamicHeaderConfig:((_ request: YKSwiftNetworkRequest) -> Dictionary<String,String>)? = nil
     
+    /// 正在加载loading
+    open var loadingSubject:PublishSubject = PublishSubject<Bool>.init()
+    
     
     /** 保存一下手动传入的Header，保证他是最高优先级 */
     private var inputHeaders:Dictionary<String,Any> = [:]
@@ -319,7 +322,7 @@ public class YKSwiftNetworking:NSObject
             return Observable<Any>.empty()
         }
     
-        let signal = Observable<Any>.create { [weak request] observer in
+        let observable = Observable<Any>.create { [weak request] observer in
             
             var progressBlock:((_ progress:Double)->Void)?
             if let proBlock = request!.progressBlock {
@@ -372,7 +375,7 @@ public class YKSwiftNetworking:NSObject
             return Disposables.create()
         }
         
-        return signal
+        return observable
     }
     
     /// 上传响应
@@ -389,7 +392,7 @@ public class YKSwiftNetworking:NSObject
             return Observable<Any>.empty()
         }
     
-        let signal = Observable<Any>.create { [weak request] observer in
+        let observable = Observable<Any>.create { [weak request] observer in
            
             if request!.uploadFileData != nil && request!.uploadName != nil && request!.uploadMimeType != nil && request!.formDataName != nil{
                 
@@ -445,7 +448,7 @@ public class YKSwiftNetworking:NSObject
             
             return Disposables.create()
         }
-        return signal
+        return observable
     }
     
     /// 下载响应
@@ -461,7 +464,7 @@ public class YKSwiftNetworking:NSObject
             return Observable<Any>.empty()
         }
     
-        let signal = Observable<Any>.create { [weak request] observer in
+        let observable = Observable<Any>.create { [weak request] observer in
             
             var progressBlock:((_ progress:Double)->Void)?
             if let proBlock = request!.progressBlock {
@@ -507,7 +510,7 @@ public class YKSwiftNetworking:NSObject
             
             return Disposables.create()
         }
-        return signal
+        return observable
     }
     
 //    MARK:直接请求独立响应式
