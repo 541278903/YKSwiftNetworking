@@ -11,8 +11,7 @@ import RxSwift
 
 extension Observable
 {
-    public func mapWithRawData()->Observable
-    {
+    public func mapWithRawData() -> Observable<Any> {
         return self.map { Element in
             if Element is Dictionary<String,Any>{
                 let response = ((Element as! Dictionary<String,Any>)["response"]) as! YKSwiftNetworkResponse

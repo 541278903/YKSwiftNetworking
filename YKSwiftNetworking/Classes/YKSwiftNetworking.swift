@@ -393,10 +393,14 @@ public class YKSwiftNetworking:NSObject
            
             if request!.uploadFileData != nil && request!.uploadName != nil && request!.uploadMimeType != nil && request!.formDataName != nil{
                 
+                var progressBlock:((_ progress:Double)->Void)?
+                if let proBlock = request!.progressBlock {
+                    progressBlock = proBlock
+                }
+                
                 YKSwiftBaseNetworking.upload(request: request!) { progress in
-                    
-                    if request!.progressBlock != nil {
-                        request!.progressBlock!(progress)
+                    if let block = progressBlock {
+                        block(progress)
                     }
                 } successCallBack: { [weak self] response, request in
                 
@@ -459,12 +463,15 @@ public class YKSwiftNetworking:NSObject
     
         let signal = Observable<Any>.create { [weak request] observer in
             
+            var progressBlock:((_ progress:Double)->Void)?
+            if let proBlock = request!.progressBlock {
+                progressBlock = proBlock
+            }
+            
             request!.task = YKSwiftBaseNetworking.download(request: request!, progressCallBack: { progress in
-                
-                if request!.progressBlock != nil {
-                    request!.progressBlock!(progress)
+                if let block = progressBlock {
+                    block(progress)
                 }
-                
             }, successCallBack: { [weak self] response, request in
                 
                 if let strongself = self {
