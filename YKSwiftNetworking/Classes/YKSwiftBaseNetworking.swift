@@ -17,15 +17,16 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         let task = Alamofire.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header).response { [weak request] response in
             
+            guard let req = request else { return }
             if response.error != nil {
-                failureCallBack(request!,false,nil,response.error)
+                failureCallBack(req,false,nil,response.error)
             } else {
                 let ykresponse = YKSwiftNetworkResponse.init()
                 ykresponse.rawData = self.resultToChang(data: response.data)
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 
-                successCallBack(ykresponse,request!)
+                successCallBack(ykresponse,req)
             }
             
         }.downloadProgress { progress in
@@ -50,25 +51,27 @@ internal class YKSwiftBaseNetworking: NSObject {
         }, to: request.urlStr) { [weak request] encodingResult in
             switch encodingResult{
                 case .success(request: let upladtRequest, streamingFromDisk: _, streamFileURL: _):do {
-                    request!.task = upladtRequest
+                    guard let req = request else { return }
+                    req.task = upladtRequest
                     upladtRequest.uploadProgress { progress in
                         progressCallBack(progress.fractionCompleted)
                     }
                     upladtRequest.response { response in
                         if response.error != nil {
-                            failureCallBack(request!,false,nil,response.error)
+                            failureCallBack(req,false,nil,response.error)
                         } else {
                             let ykresponse = YKSwiftNetworkResponse.init()
                             ykresponse.rawData = self.resultToChang(data: response.data)
                             ykresponse.isCache = false
                             ykresponse.code = response.response?.statusCode ?? 0
-                            successCallBack(ykresponse,request!)
+                            successCallBack(ykresponse,req)
                         }
                     }
                     break
                 }
                 case .failure(let error):do {
-                    failureCallBack(request!,false,nil,error)
+                    guard let req = request else { return }
+                    failureCallBack(req,false,nil,error)
                     break
                 }
             }
@@ -82,23 +85,26 @@ internal class YKSwiftBaseNetworking: NSObject {
         let destination: DownloadRequest.DownloadFileDestination = { [weak request] url, options in
             var documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
 
-            let urllastPathComponent = URL.init(string: request!.urlStr)!.lastPathComponent
-            
-            if request!.destPath.count > 0 {
-                documentsURL.appendPathComponent(request!.destPath)
-            }
-            var isDic: ObjCBool = ObjCBool(false)
-            let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
-            if exists && isDic.boolValue {
-                // Exists. Directory.
-                documentsURL.appendPathComponent("\(urllastPathComponent)")
-            } else if exists {
-                // Exists.
-            } else {
-                try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
-                documentsURL.appendPathComponent("\(urllastPathComponent)")
+            if let req = request {
+                let urllastPathComponent = URL.init(string: req.urlStr)!.lastPathComponent
+                
+                if req.destPath.count > 0 {
+                    documentsURL.appendPathComponent(req.destPath)
+                }
+                var isDic: ObjCBool = ObjCBool(false)
+                let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
+                if exists && isDic.boolValue {
+                    // Exists. Directory.
+                    documentsURL.appendPathComponent("\(urllastPathComponent)")
+                } else if exists {
+                    // Exists.
+                } else {
+                    try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
+                    documentsURL.appendPathComponent("\(urllastPathComponent)")
 
+                }
             }
+            
             return (documentsURL, [.createIntermediateDirectories])
        }
         
@@ -106,14 +112,16 @@ internal class YKSwiftBaseNetworking: NSObject {
             progressCallBack(progress.fractionCompleted)
         }.response { [weak request] response in
             
-            if response.error != nil {
-                failureCallBack(request!,false,nil,response.error)
-            } else {
-                let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = response.destinationURL!.relativeString
-                ykresponse.isCache = false
-                ykresponse.code = response.response?.statusCode ?? 0
-                successCallBack(ykresponse,request!)
+            if let req = request {
+                if response.error != nil {
+                    failureCallBack( req, false, nil, response.error)
+                } else {
+                    let ykresponse = YKSwiftNetworkResponse.init()
+                    ykresponse.rawData = response.destinationURL!.relativeString
+                    ykresponse.isCache = false
+                    ykresponse.code = response.response?.statusCode ?? 0
+                    successCallBack(ykresponse, req)
+                }
             }
         }
         task.resume()

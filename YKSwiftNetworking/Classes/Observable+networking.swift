@@ -20,4 +20,15 @@ extension Observable
             return Element
         }
     }
+    
+//    public func listMapWithRawData(listName name:String, className className:AnyClass) -> Observable<Array<Any>> {
+//        return self.map { Element in
+//            
+//            let newlevel = className.init()
+//            
+//            
+//            return []
+//            
+//        }
+//    }
 }
