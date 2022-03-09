@@ -530,10 +530,6 @@ public class YKSwiftNetworking:NSObject
             complate(result,nil)
         }, onError: { error in
             complate(nil,error)
-        }, onCompleted: {
-            
-        }, onDisposed: {
-            
         })
 
     }
@@ -578,10 +574,6 @@ public class YKSwiftNetworking:NSObject
             complate(result,nil);
         }, onError: { error in
             complate(nil,error)
-        }, onCompleted: {
-
-        }, onDisposed: {
-
         })
     }
     
@@ -598,10 +590,6 @@ public class YKSwiftNetworking:NSObject
             complate(result,nil)
         }, onError: { error in
             complate(nil,error)
-        }, onCompleted: {
-            
-        }, onDisposed: {
-            
         })
     }
     
@@ -655,9 +643,6 @@ public class YKSwiftNetworking:NSObject
             }
         }
         
-//        if (self.handleResponse == nil && config.handleResponse != nil) {
-//            self.handleResponse = config.handleResponse!
-//        }
         
         request.startTimeInterval = Date.init(timeIntervalSinceNow: 0).timeIntervalSince1970
         
