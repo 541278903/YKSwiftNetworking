@@ -40,6 +40,9 @@ public class YKSwiftNetworkingConfig:NSObject
     /** 根据需求处理回调信息判断是否是正确的回调 即中转统一处理源数据 */
     public var handleResponse:((_ response:YKSwiftNetworkResponse,_ request:YKSwiftNetworkRequest)->Error?)?
     
+    /** 正在加载 */
+    public var loadingHandle:((_ loading:Bool) -> Void)?
+    
     /** 根据需求设置缓存内容 */
     public var cacheRequest:((_ response:YKSwiftNetworkResponse,_ request:YKSwiftNetworkRequest, _ isException:Bool)->Void)?
     
