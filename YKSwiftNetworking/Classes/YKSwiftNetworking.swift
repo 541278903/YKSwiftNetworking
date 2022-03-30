@@ -100,8 +100,8 @@ public class YKSwiftNetworking:NSObject
      */
     open var dynamicHeaderConfig:((_ request: YKSwiftNetworkRequest) -> Dictionary<String,String>)? = nil
     
-    /// 正在加载loading
-    open var loadingSubject:PublishSubject = PublishSubject<Bool>.init()
+    /// 根据需求处理正在加载的内容
+    open var loadingHandle:((_ loading:Bool) -> Void)?
     
     
     /** 保存一下手动传入的Header，保证他是最高优先级 */
@@ -304,8 +304,8 @@ public class YKSwiftNetworking:NSObject
         return self.url(url).method(.PATCH)
     }
     
-    func showloading(_ isShow: Bool) -> YKSwiftNetworking {
-        self.request.isShowLoading = isShow
+    public func showloading() -> YKSwiftNetworking {
+        self.request.isShowLoading = true
         return self
     }
     
@@ -321,7 +321,9 @@ public class YKSwiftNetworking:NSObject
             self._request = nil
             return Observable<Any>.empty()
         }
-    
+        if request.isShowLoading && self.loadingHandle != nil {
+            self.loadingHandle!(true);
+        }
         let observable = Observable<Any>.create { [weak request] observer in
             
             var progressBlock:((_ progress:Double)->Void)?
@@ -338,6 +340,11 @@ public class YKSwiftNetworking:NSObject
             }, successCallBack: { [weak self] response, request in
                 
                 if let strongself = self {
+                    
+                    if request.isShowLoading && strongself.loadingHandle != nil {
+                        strongself.loadingHandle!(false);
+                    }
+                    
                     var error:Error? = nil
                     if strongself.handleResponse != nil && !request.disableHandleResponse
                     {
@@ -362,6 +369,11 @@ public class YKSwiftNetworking:NSObject
                 }
                 
                 if let strongself = self {
+                    
+                    if request.isShowLoading && strongself.loadingHandle != nil {
+                        strongself.loadingHandle!(false);
+                    }
+                    
                     let ykresponse = YKSwiftNetworkResponse()
                     ykresponse.rawData = responseObject
                     strongself.saveTask(request: request, response: ykresponse, isException: true)
@@ -391,7 +403,9 @@ public class YKSwiftNetworking:NSObject
             self._request = nil
             return Observable<Any>.empty()
         }
-    
+        if request.isShowLoading && self.loadingHandle != nil {
+            self.loadingHandle!(true);
+        }
         let observable = Observable<Any>.create { [weak request] observer in
            
             if request!.uploadFileData != nil && request!.uploadName != nil && request!.uploadMimeType != nil && request!.formDataName != nil{
@@ -406,8 +420,10 @@ public class YKSwiftNetworking:NSObject
                         block(progress)
                     }
                 } successCallBack: { [weak self] response, request in
-                
                     if let strongself = self {
+                        if request.isShowLoading && strongself.loadingHandle != nil {
+                            strongself.loadingHandle!(false);
+                        }
                         var error:Error? = nil
                         if strongself.handleResponse != nil && !request.disableHandleResponse
                         {
@@ -425,19 +441,18 @@ public class YKSwiftNetworking:NSObject
                     
                     observer.onCompleted()
                 } failureCallBack: { [weak self] request, isCache, responseObject, error in
-                    
                     if let err = error {
                         observer.onError(err)
                     }
-                    
                     if let strongself = self {
+                        if request.isShowLoading && strongself.loadingHandle != nil {
+                            strongself.loadingHandle!(false);
+                        }
                         let ykresponse = YKSwiftNetworkResponse.init()
                         strongself.saveTask(request: request, response: ykresponse, isException: true)
                     }
                     observer.onCompleted()
                 }
-
-                
             }else{
                 let error = NSError.init(domain: "com.YKSwiftNetworking", code: -1, userInfo: [NSLocalizedDescriptionKey:"未设置数据:上传前请先调用uploadData()方法"])
                 observer.onError(error)
@@ -455,15 +470,15 @@ public class YKSwiftNetworking:NSObject
     /// - warning: 请务必调用downloadDestPath
     /// - Returns: 响应
     public func downloadDataSignal() -> Observable<Any> {
-        
-        
         let request = self.request.copy() as! YKSwiftNetworkRequest
         let canContinue = self.handleConfig(with: request)
         if !canContinue {
             self._request = nil
             return Observable<Any>.empty()
         }
-    
+        if request.isShowLoading && self.loadingHandle != nil {
+            self.loadingHandle!(true);
+        }
         let observable = Observable<Any>.create { [weak request] observer in
             
             var progressBlock:((_ progress:Double)->Void)?
@@ -478,6 +493,9 @@ public class YKSwiftNetworking:NSObject
             }, successCallBack: { [weak self] response, request in
                 
                 if let strongself = self {
+                    if request.isShowLoading && strongself.loadingHandle != nil {
+                        strongself.loadingHandle!(false);
+                    }
                     var error:Error? = nil
                     if strongself.handleResponse != nil && !request.disableHandleResponse
                     {
@@ -499,6 +517,9 @@ public class YKSwiftNetworking:NSObject
                     observer.onError(err)
                 }
                 if let strongself = self {
+                    if request.isShowLoading && strongself.loadingHandle != nil {
+                        strongself.loadingHandle!(false);
+                    }
                     let ykresponse = YKSwiftNetworkResponse.init()
                     strongself.saveTask(request: request, response: ykresponse, isException: true)
                 }

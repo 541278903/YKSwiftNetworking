@@ -110,7 +110,7 @@ public class YKSwiftNetworkRequest:NSObject,NSCopying
     /** 下载Task */
     public var downloadTask:URLSessionDownloadTask? = nil
     
-    public var isShowLoading:Bool = true
+    public var isShowLoading:Bool = false
     
     public override init() {
         super.init()
