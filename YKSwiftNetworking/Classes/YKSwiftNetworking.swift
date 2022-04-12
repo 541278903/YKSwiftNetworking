@@ -324,15 +324,30 @@ public class YKSwiftNetworking:NSObject
         if request.isShowLoading && self.loadingHandle != nil {
             self.loadingHandle!(true);
         }
-        let observable = Observable<Any>.create { [weak request] observer in
+        let observable = Observable<Any>.create { [weak request,weak self] observer in
+            
+            guard let weakRequest = request else {
+                observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"初始化发生错误",
+                    NSLocalizedFailureReasonErrorKey:"初始化发生错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+                ]))
+                return Disposables.create() }
+            guard let weakSelf = self else {
+                observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"初始化发生错误",
+                    NSLocalizedFailureReasonErrorKey:"初始化发生错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+                ]))
+                return Disposables.create() }
             
             var progressBlock:((_ progress:Double)->Void)?
-            if let proBlock = request!.progressBlock {
+            if let proBlock = weakRequest.progressBlock {
                 progressBlock = proBlock
             }
             
             
-            request!.task = YKSwiftBaseNetworking.request(request: request!, progressCallBack: { progress in
+            weakRequest.task = YKSwiftBaseNetworking.request(request: weakRequest, progressCallBack: { progress in
                 
                 if let block = progressBlock {
                     block(progress)
@@ -382,7 +397,7 @@ public class YKSwiftNetworking:NSObject
                 observer.onCompleted()
             })
             
-            self._request = nil
+            weakSelf._request = nil
             
             return Disposables.create()
         }
@@ -406,16 +421,32 @@ public class YKSwiftNetworking:NSObject
         if request.isShowLoading && self.loadingHandle != nil {
             self.loadingHandle!(true);
         }
-        let observable = Observable<Any>.create { [weak request] observer in
+        let observable = Observable<Any>.create { [weak request, weak self] observer in
+            
+            guard let weakRequest = request else {
+                observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"初始化发生错误",
+                    NSLocalizedFailureReasonErrorKey:"初始化发生错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+                ]))
+                return Disposables.create() }
+            guard let weakSelf = self else {
+                observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"初始化发生错误",
+                    NSLocalizedFailureReasonErrorKey:"初始化发生错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+                ]))
+                return Disposables.create() }
+            
            
-            if request!.uploadFileData != nil && request!.uploadName != nil && request!.uploadMimeType != nil && request!.formDataName != nil{
+            if weakRequest.uploadFileData != nil && weakRequest.uploadName != nil && weakRequest.uploadMimeType != nil && weakRequest.formDataName != nil{
                 
                 var progressBlock:((_ progress:Double)->Void)?
-                if let proBlock = request!.progressBlock {
+                if let proBlock = weakRequest.progressBlock {
                     progressBlock = proBlock
                 }
                 
-                YKSwiftBaseNetworking.upload(request: request!) { progress in
+                YKSwiftBaseNetworking.upload(request: weakRequest) { progress in
                     if let block = progressBlock {
                         block(progress)
                     }
@@ -458,8 +489,8 @@ public class YKSwiftNetworking:NSObject
                 observer.onError(error)
                 observer.onCompleted()
             }
-            request!.task?.resume()
-            self._request = nil
+            weakRequest.task?.resume()
+            weakSelf._request = nil
             
             return Disposables.create()
         }
@@ -479,14 +510,29 @@ public class YKSwiftNetworking:NSObject
         if request.isShowLoading && self.loadingHandle != nil {
             self.loadingHandle!(true);
         }
-        let observable = Observable<Any>.create { [weak request] observer in
+        let observable = Observable<Any>.create { [weak request, weak self] observer in
+            
+            guard let weakRequest = request else {
+                observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"初始化发生错误",
+                    NSLocalizedFailureReasonErrorKey:"初始化发生错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+                ]))
+                return Disposables.create() }
+            guard let weakSelf = self else {
+                observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"初始化发生错误",
+                    NSLocalizedFailureReasonErrorKey:"初始化发生错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+                ]))
+                return Disposables.create() }
             
             var progressBlock:((_ progress:Double)->Void)?
-            if let proBlock = request!.progressBlock {
+            if let proBlock = weakRequest.progressBlock {
                 progressBlock = proBlock
             }
             
-            request!.task = YKSwiftBaseNetworking.download(request: request!, progressCallBack: { progress in
+            weakRequest.task = YKSwiftBaseNetworking.download(request: weakRequest, progressCallBack: { progress in
                 if let block = progressBlock {
                     block(progress)
                 }
@@ -526,7 +572,7 @@ public class YKSwiftNetworking:NSObject
                 
                 observer.onCompleted()
             })
-            self._request = nil
+            weakSelf._request = nil
             
             
             return Disposables.create()

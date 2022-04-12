@@ -22,7 +22,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                 failureCallBack(req,false,nil,response.error)
             } else {
                 let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = self.resultToChang(data: response.data)
+                ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: response.data)
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 
@@ -61,7 +61,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                             failureCallBack(req,false,nil,response.error)
                         } else {
                             let ykresponse = YKSwiftNetworkResponse.init()
-                            ykresponse.rawData = self.resultToChang(data: response.data)
+                            ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: response.data)
                             ykresponse.isCache = false
                             ykresponse.code = response.response?.statusCode ?? 0
                             successCallBack(ykresponse,req)
