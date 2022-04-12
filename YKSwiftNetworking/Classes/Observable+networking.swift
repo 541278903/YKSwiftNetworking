@@ -7,15 +7,18 @@
 
 import Foundation
 import RxSwift
+import KakaJSON
 
 
 extension Observable
 {
     public func mapWithRawData() -> Observable<Any> {
         return self.map { Element in
-            if Element is Dictionary<String,Any>{
-                let response = ((Element as! Dictionary<String,Any>)["response"]) as! YKSwiftNetworkResponse
-                return response.rawData as! Element
+            if let element = Element as? [String:Any],
+               let response = element["response"] as? YKSwiftNetworkResponse,
+               let rawData = response.rawData
+            {
+                return rawData
             }
             return Element
         }
