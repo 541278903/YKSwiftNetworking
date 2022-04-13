@@ -26,29 +26,27 @@ extension Observable
     
     public func listMapWithRawData<D: Convertible>(listName:String, className:D.Type) -> Observable<[D]> {
         return self.map { Element in
-            var result:[D] = []
             if let element = Element as? [String:Any],
                let response = element["response"] as? YKSwiftNetworkResponse,
                let rawData = response.rawData as? [String:Any],
                let list = rawData[listName] as? [Any]
             {
-                result = list.kj.modelArray(className)
+                return list.kj.modelArray(className)
             }
-            return result
+            return []
             
         }
     }
     
     public func modelMapWithRawData<D: Convertible>(_ className:D.Type) -> Observable<D> {
         return self.map { Element in
-            var result:D = D.init()
             if let element = Element as? [String:Any],
                let response = element["response"] as? YKSwiftNetworkResponse,
                let rawData = response.rawData as? [String:Any]
             {
-                result = rawData.kj.model(className)
+                return rawData.kj.model(className)
             }
-            return result
+            return D.init()
         }
     }
 }
