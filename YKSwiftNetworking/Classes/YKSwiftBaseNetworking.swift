@@ -13,7 +13,7 @@ internal class YKSwiftBaseNetworking: NSObject {
     
     public static func request(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void)->Request
     {
-        configWith(request: request)
+        YKSwiftBaseNetworking.configWith(request: request)
         
         let task = Alamofire.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header).response { [weak request] response in
             
@@ -44,7 +44,7 @@ internal class YKSwiftBaseNetworking: NSObject {
     
     public static func upload(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void)
     {
-        configWith(request: request)
+        YKSwiftBaseNetworking.configWith(request: request)
         
         Alamofire.upload(multipartFormData: { [weak request] multipartFormData in
             multipartFormData.append(request!.uploadFileData!, withName: request!.formDataName!, fileName: request!.uploadName!, mimeType: request!.uploadMimeType!)
@@ -80,7 +80,7 @@ internal class YKSwiftBaseNetworking: NSObject {
     
     public static func download(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void)->Request
     {
-        configWith(request: request)
+        YKSwiftBaseNetworking.configWith(request: request)
             
         let destination: DownloadRequest.DownloadFileDestination = { [weak request] url, options in
             var documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
@@ -117,7 +117,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                     failureCallBack( req, false, nil, response.error)
                 } else {
                     let ykresponse = YKSwiftNetworkResponse.init()
-                    ykresponse.rawData = response.destinationURL!.relativeString
+                    ykresponse.rawData = ["url":response.destinationURL!.relativeString]
                     ykresponse.isCache = false
                     ykresponse.code = response.response?.statusCode ?? 0
                     successCallBack(ykresponse, req)

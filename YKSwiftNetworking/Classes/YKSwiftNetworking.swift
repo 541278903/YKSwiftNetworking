@@ -353,46 +353,56 @@ public class YKSwiftNetworking:NSObject
                     block(progress)
                 }
             }, successCallBack: { [weak self] response, request in
+                guard let weakSelf = self else {
+                    observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                        NSLocalizedDescriptionKey:"self处理错误",
+                        NSLocalizedFailureReasonErrorKey:"self处理错误",
+                        NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
+                    ]))
+                    observer.onCompleted()
+                    return }
                 
-                if let strongself = self {
-                    
-                    if request.isShowLoading && strongself.loadingHandle != nil {
-                        strongself.loadingHandle!(false);
-                    }
-                    
-                    var error:Error? = nil
-                    if strongself.handleResponse != nil && !request.disableHandleResponse
-                    {
-                        error = strongself.handleResponse!(response,request)
-                        if error != nil {
-                            observer.onError(error!)
-                        }else{
-                            observer.onNext(["request":request,"response":response])
-                        }
+                if request.isShowLoading && weakSelf.loadingHandle != nil {
+                    weakSelf.loadingHandle!(false);
+                }
+                
+                var error:Error? = nil
+                if weakSelf.handleResponse != nil && !request.disableHandleResponse
+                {
+                    error = weakSelf.handleResponse!(response,request)
+                    if error != nil {
+                        observer.onError(error!)
                     }else{
                         observer.onNext(["request":request,"response":response])
                     }
-                    
-                    strongself.saveTask(request: request, response: response, isException: error != nil)
+                }else{
+                    observer.onNext(["request":request,"response":response])
                 }
                 
-                self.saveTask(request: request, response: response, isException: error != nil)
+                weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
                 
+                guard let weakSelf = self else {
+                    observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                        NSLocalizedDescriptionKey:"self处理错误",
+                        NSLocalizedFailureReasonErrorKey:"self处理错误",
+                        NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
+                    ]))
+                    observer.onCompleted()
+                    return }
+                
                 if let err = error {
                     observer.onError(err)
-                }
-                
-                if let strongself = self {
-                    
-                    if request.isShowLoading && strongself.loadingHandle != nil {
-                        strongself.loadingHandle!(false);
+                }else {
+                    if request.isShowLoading && weakSelf.loadingHandle != nil {
+                        weakSelf.loadingHandle!(false);
                     }
                     
                     let ykresponse = YKSwiftNetworkResponse()
                     ykresponse.rawData = responseObject
-                    strongself.saveTask(request: request, response: ykresponse, isException: true)
+                    weakSelf.saveTask(request: request, response: ykresponse, isException: true)
                 }
                 
                 observer.onCompleted()
@@ -452,41 +462,53 @@ public class YKSwiftNetworking:NSObject
                         block(progress)
                     }
                 } successCallBack: { [weak self] response, request in
-                    if let strongself = self {
-                        if request.isShowLoading && strongself.loadingHandle != nil {
-                            strongself.loadingHandle!(false);
-                        }
-                        var error:Error? = nil
-                        if strongself.handleResponse != nil && !request.disableHandleResponse
-                        {
-                            error = strongself.handleResponse!(response,request)
-                            if error != nil {
-                                observer.onError(error!)
-                            }else{
-                                observer.onNext(["request":request,"response":response])
-                            }
+                    guard let weakSelf = self else {
+                        observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                            NSLocalizedDescriptionKey:"self处理错误",
+                            NSLocalizedFailureReasonErrorKey:"self处理错误",
+                            NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
+                        ]))
+                        observer.onCompleted()
+                        return }
+                    if request.isShowLoading && weakSelf.loadingHandle != nil {
+                        weakSelf.loadingHandle!(false);
+                    }
+                    var error:Error? = nil
+                    if weakSelf.handleResponse != nil && !request.disableHandleResponse
+                    {
+                        error = weakSelf.handleResponse!(response,request)
+                        if error != nil {
+                            observer.onError(error!)
                         }else{
                             observer.onNext(["request":request,"response":response])
                         }
-                        strongself.saveTask(request: request, response: response, isException: error != nil)
+                    }else{
+                        observer.onNext(["request":request,"response":response])
                     }
-                    
+                    weakSelf.saveTask(request: request, response: response, isException: error != nil)
                     observer.onCompleted()
                 } failureCallBack: { [weak self] request, isCache, responseObject, error in
+                    guard let weakSelf = self else {
+                        observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                            NSLocalizedDescriptionKey:"self处理错误",
+                            NSLocalizedFailureReasonErrorKey:"self处理错误",
+                            NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
+                        ]))
+                        observer.onCompleted()
+                        return }
                     if let err = error {
                         observer.onError(err)
-                    }
-                    if let strongself = self {
-                        if request.isShowLoading && strongself.loadingHandle != nil {
-                            strongself.loadingHandle!(false);
+                    }else {
+                        if request.isShowLoading && weakSelf.loadingHandle != nil {
+                            weakSelf.loadingHandle!(false);
                         }
                         let ykresponse = YKSwiftNetworkResponse.init()
-                        strongself.saveTask(request: request, response: ykresponse, isException: true)
+                        weakSelf.saveTask(request: request, response: ykresponse, isException: true)
                     }
                     observer.onCompleted()
                 }
             }else{
-                let error = NSError.init(domain: "com.YKSwiftNetworking", code: -1, userInfo: [NSLocalizedDescriptionKey:"未设置数据:上传前请先调用uploadData()方法"])
+                let error = NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [NSLocalizedDescriptionKey:"未设置数据:上传前请先调用uploadData()方法"])
                 observer.onError(error)
                 observer.onCompleted()
             }
@@ -539,41 +561,52 @@ public class YKSwiftNetworking:NSObject
                 }
             }, successCallBack: { [weak self] response, request in
                 
-                if let strongself = self {
-                    if request.isShowLoading && strongself.loadingHandle != nil {
-                        strongself.loadingHandle!(false);
-                    }
-                    var error:Error? = nil
-                    if strongself.handleResponse != nil && !request.disableHandleResponse
-                    {
-                        error = strongself.handleResponse!(response,request)
-                        if error != nil {
-                            observer.onError(error!)
-                        }else{
-                            observer.onNext(["request":request,"response":response])
-                        }
+                guard let weakSelf = self else {
+                    observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                        NSLocalizedDescriptionKey:"self处理错误",
+                        NSLocalizedFailureReasonErrorKey:"self处理错误",
+                        NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
+                    ]))
+                    observer.onCompleted()
+                    return }
+                if request.isShowLoading && weakSelf.loadingHandle != nil {
+                    weakSelf.loadingHandle!(false);
+                }
+                var error:Error? = nil
+                if weakSelf.handleResponse != nil && !request.disableHandleResponse
+                {
+                    error = weakSelf.handleResponse!(response,request)
+                    if error != nil {
+                        observer.onError(error!)
                     }else{
                         observer.onNext(["request":request,"response":response])
                     }
-                    strongself.saveTask(request: request, response: response, isException: error != nil)
+                }else{
+                    observer.onNext(["request":request,"response":response])
                 }
+                weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
+                
+                guard let weakSelf = self else {
+                    observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                        NSLocalizedDescriptionKey:"self处理错误",
+                        NSLocalizedFailureReasonErrorKey:"self处理错误",
+                        NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
+                    ]))
+                    observer.onCompleted()
+                    return }
+                
                 if let err = error {
-                    
                     observer.onError(err)
-                }
-                if let strongself = self {
-                    if request.isShowLoading && strongself.loadingHandle != nil {
-                        strongself.loadingHandle!(false);
+                }else {
+                    if request.isShowLoading && weakSelf.loadingHandle != nil {
+                        weakSelf.loadingHandle!(false);
                     }
                     let ykresponse = YKSwiftNetworkResponse.init()
-                    strongself.saveTask(request: request, response: ykresponse, isException: true)
+                    weakSelf.saveTask(request: request, response: ykresponse, isException: true)
                 }
-                
-                observer.onError(error!)
-                let ykresponse = YKSwiftNetworkResponse.init()
-                self.saveTask(request: request, response: ykresponse, isException: true)
                 observer.onCompleted()
             })
             weakSelf._request = nil
