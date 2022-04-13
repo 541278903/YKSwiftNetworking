@@ -8,12 +8,12 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftNetworking'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.summary          = 'A short description of YKSwiftNetworking.'
 
 
   s.description      = <<-DESC
-    swift网络请求框架
+              swift网络请求框架
                        DESC
 
   s.homepage         = 'https://gitee.com/Edwrard/YKSwiftNetworking'
@@ -25,7 +25,6 @@ Pod::Spec.new do |s|
   s.dependency  'Alamofire', '4.9.1'
   s.dependency  'RxSwift'
   s.dependency  'SwiftyJSON'
-  s.dependency  'KakaJSON'
 
   s.source_files = 'YKSwiftNetworking/Classes/**/*'
   
