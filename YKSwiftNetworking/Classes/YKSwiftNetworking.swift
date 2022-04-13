@@ -376,6 +376,7 @@ public class YKSwiftNetworking:NSObject
                     strongself.saveTask(request: request, response: response, isException: error != nil)
                 }
                 
+                self.saveTask(request: request, response: response, isException: error != nil)
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
                 
@@ -570,6 +571,9 @@ public class YKSwiftNetworking:NSObject
                     strongself.saveTask(request: request, response: ykresponse, isException: true)
                 }
                 
+                observer.onError(error!)
+                let ykresponse = YKSwiftNetworkResponse.init()
+                self.saveTask(request: request, response: ykresponse, isException: true)
                 observer.onCompleted()
             })
             weakSelf._request = nil
