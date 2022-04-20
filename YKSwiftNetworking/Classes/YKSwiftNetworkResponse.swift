@@ -7,8 +7,7 @@
 
 import Foundation
 
-
-public class YKSwiftNetworkResponse:NSObject,NSCoding,NSMutableCopying
+public class YKSwiftNetworkResponse: NSObject, NSCoding, NSMutableCopying
 {
     public func encode(with coder: NSCoder) {
         coder.encode(self.rawData, forKey: "rawData")

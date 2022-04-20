@@ -8,7 +8,7 @@
 import Foundation
 
 
-public class YKSwiftNetworkingConfig:NSObject
+public class YKSwiftNetworkingConfig: NSObject
 {
     public static let share:YKSwiftNetworkingConfig = YKSwiftNetworkingConfig.init()
     

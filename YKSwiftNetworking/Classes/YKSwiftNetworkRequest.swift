@@ -8,8 +8,7 @@
 import Foundation
 import Alamofire
 
-
-public class YKSwiftNetworkRequest:NSObject,NSCopying
+public class YKSwiftNetworkRequest: NSObject, NSCopying
 {
     public func copy(with zone: NSZone? = nil) -> Any {
         let request:YKSwiftNetworkRequest = YKSwiftNetworkRequest.init()

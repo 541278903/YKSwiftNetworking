@@ -1,5 +1,5 @@
 //
-//  Observable+networking.swift
+//  Observable+Networking.swift
 //  YKSwiftNetworking
 //
 //  Created by edward on 2021/6/16.
@@ -7,7 +7,6 @@
 
 import Foundation
 import RxSwift
-
 
 extension Observable
 {

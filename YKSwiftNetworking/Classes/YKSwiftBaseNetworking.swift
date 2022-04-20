@@ -2,7 +2,7 @@
 //  YKSwiftBaseNetworking.swift
 //  YKSwiftNetworking
 //
-//  Created by linghit on 2021/9/1.
+//  Created by edward on 2021/9/1.
 //
 
 import UIKit
@@ -134,31 +134,31 @@ internal class YKSwiftBaseNetworking: NSObject {
     
     private static func resultToChang(data:Any?)->Any?
     {
-        if data is Data && data != nil {
-            let json = try? JSON.init(data: data as! Data)
-            if json != nil {
-                if json!.dictionary != nil {
-                    
-                    return json!.dictionaryObject
-                }else if json!.array != nil {
-                    
-                    return json!.arrayObject
-                }else if json!.string != nil {
-                    
-                    return json!.stringValue
-                }else if json!.bool != nil {
-                    
-                    return json!.boolValue
-                }else if json!.number != nil {
-                    
-                    return json!.numberValue
-                }else if json!.error != nil {
-                    return json!.error!
-                }else{
-                    return json!.object
-                }
+        if let jsonData = data as? Data,
+           let json = try? JSON.init(data: jsonData)
+        {
+            if json.dictionary != nil {
+                
+                return json.dictionaryObject
+            }else if json.array != nil {
+                
+                return json.arrayObject
+            }else if json.string != nil {
+                
+                return json.stringValue
+            }else if json.bool != nil {
+                
+                return json.boolValue
+            }else if json.number != nil {
+                
+                return json.numberValue
+            }else if json.error != nil {
+                return json.error!
+            }else{
+                return json.object
             }
+        }else {
+            return data
         }
-        return data
     }
 }

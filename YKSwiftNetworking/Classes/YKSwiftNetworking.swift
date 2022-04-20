@@ -17,8 +17,8 @@ import RxSwift
     case DELETE = 4
 }
 
-@objc
-public protocol YKSwiftNetworkingDelegate: NSObjectProtocol{
+
+@objc public protocol YKSwiftNetworkingDelegate {
     
     /// 可设置缓存内容 需要开启缓存开关yk_isCache
     /// - Parameters:
@@ -321,8 +321,8 @@ public class YKSwiftNetworking:NSObject
             self._request = nil
             return Observable<Any>.empty()
         }
-        if request.isShowLoading && self.loadingHandle != nil {
-            self.loadingHandle!(true);
+        if request.isShowLoading {
+            self.loadingHandle?(true);
         }
         let observable = Observable<Any>.create { [weak request,weak self] observer in
             
@@ -362,8 +362,8 @@ public class YKSwiftNetworking:NSObject
                     observer.onCompleted()
                     return }
                 
-                if request.isShowLoading && weakSelf.loadingHandle != nil {
-                    weakSelf.loadingHandle!(false);
+                if request.isShowLoading {
+                    weakSelf.loadingHandle?(false);
                 }
                 
                 var error:Error? = nil
@@ -396,12 +396,13 @@ public class YKSwiftNetworking:NSObject
                 if let err = error {
                     observer.onError(err)
                 }else {
-                    if request.isShowLoading && weakSelf.loadingHandle != nil {
-                        weakSelf.loadingHandle!(false);
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false);
                     }
                     
                     let ykresponse = YKSwiftNetworkResponse()
                     ykresponse.rawData = responseObject
+                    observer.onNext(["request":request,"response":ykresponse])
                     weakSelf.saveTask(request: request, response: ykresponse, isException: true)
                 }
                 
@@ -429,8 +430,8 @@ public class YKSwiftNetworking:NSObject
             self._request = nil
             return Observable<Any>.empty()
         }
-        if request.isShowLoading && self.loadingHandle != nil {
-            self.loadingHandle!(true);
+        if request.isShowLoading {
+            self.loadingHandle?(true);
         }
         let observable = Observable<Any>.create { [weak request, weak self] observer in
             
@@ -470,8 +471,8 @@ public class YKSwiftNetworking:NSObject
                         ]))
                         observer.onCompleted()
                         return }
-                    if request.isShowLoading && weakSelf.loadingHandle != nil {
-                        weakSelf.loadingHandle!(false);
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false);
                     }
                     var error:Error? = nil
                     if weakSelf.handleResponse != nil && !request.disableHandleResponse
@@ -499,10 +500,11 @@ public class YKSwiftNetworking:NSObject
                     if let err = error {
                         observer.onError(err)
                     }else {
-                        if request.isShowLoading && weakSelf.loadingHandle != nil {
-                            weakSelf.loadingHandle!(false);
+                        if request.isShowLoading {
+                            weakSelf.loadingHandle?(false);
                         }
                         let ykresponse = YKSwiftNetworkResponse.init()
+                        observer.onNext(["request":request,"response":ykresponse])
                         weakSelf.saveTask(request: request, response: ykresponse, isException: true)
                     }
                     observer.onCompleted()
@@ -530,8 +532,8 @@ public class YKSwiftNetworking:NSObject
             self._request = nil
             return Observable<Any>.empty()
         }
-        if request.isShowLoading && self.loadingHandle != nil {
-            self.loadingHandle!(true);
+        if request.isShowLoading {
+            self.loadingHandle?(true);
         }
         let observable = Observable<Any>.create { [weak request, weak self] observer in
             
@@ -569,8 +571,8 @@ public class YKSwiftNetworking:NSObject
                     ]))
                     observer.onCompleted()
                     return }
-                if request.isShowLoading && weakSelf.loadingHandle != nil {
-                    weakSelf.loadingHandle!(false);
+                if request.isShowLoading {
+                    weakSelf.loadingHandle?(false);
                 }
                 var error:Error? = nil
                 if weakSelf.handleResponse != nil && !request.disableHandleResponse
@@ -601,10 +603,11 @@ public class YKSwiftNetworking:NSObject
                 if let err = error {
                     observer.onError(err)
                 }else {
-                    if request.isShowLoading && weakSelf.loadingHandle != nil {
-                        weakSelf.loadingHandle!(false);
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false);
                     }
                     let ykresponse = YKSwiftNetworkResponse.init()
+                    observer.onNext(["request":request,"response":ykresponse])
                     weakSelf.saveTask(request: request, response: ykresponse, isException: true)
                 }
                 observer.onCompleted()
