@@ -10,13 +10,11 @@ import RxSwift
 
 extension Observable
 {
-    public func mapWithRawData() -> Observable<Any> {
+    public func mapWithRawData() -> Observable<Any?> {
         return self.map { Element in
-            if let element = Element as? [String:Any],
-               let response = element["response"] as? YKSwiftNetworkResponse,
-               let rawData = response.rawData
+            if let data = Element as? (request:YKSwiftNetworkRequest,response:YKSwiftNetworkResponse)
             {
-                return rawData
+                return data.response.rawData
             }
             return Element
         }
