@@ -43,42 +43,56 @@ public class YKSwiftNetworking:NSObject
                 _request = YKSwiftNetworkRequest.init()
                 if (!self.ignoreDefaultHeader && self.defaultHeader != nil) {
                     for (key,value) in self.defaultHeader! {
-                        _request!.header[key] = value  //MARK:设置默认请求参数
+                        _request!.header.updateValue(value, forKey: key)  //MARK:设置默认请求参数
                     }
                 }
                 if (!self.ignoreDefaultParams && self.defaultParams != nil) {
                     for (key,value) in self.defaultParams! {
-                        _request!.params[key] = value //MARK:设置默认请求参数
+                        _request!.params.updateValue(value, forKey: key) //MARK:设置默认请求参数
                     }
                 }
                 for (key,value) in self.commonHeader {
-                    _request!.header[key] = value
+                    _request!.header.updateValue(value, forKey: key)
                 }
                 for (key,value) in self.commonParams {
-                    _request!.params[key] = value
+                    _request!.params.updateValue(value, forKey: key)
                 }
+                
+                if let configDefaultHeader = YKSwiftNetworkingConfig.share.defaultHeader {
+                    for (key,value) in configDefaultHeader {
+                        _request!.header.updateValue(value, forKey: key)
+                    }
+                }
+                
+                if let configDefaultParams = YKSwiftNetworkingConfig.share.defaultParams {
+                    for (key,value) in configDefaultParams {
+                        _request!.params.updateValue(value, forKey: key)
+                    }
+                }
+                
             }
             return _request!
         }set{
             _request =  newValue
         }
     }
-    private var requestDictionary:Dictionary<String, YKSwiftNetworkRequest> = [:]
+    
+    private var requestDictionary:[String:YKSwiftNetworkRequest] = [:]
     
 //    MARK:public
     open weak var delegate: YKSwiftNetworkingDelegate?
     
     /** 通用请求头 */
-    open var commonHeader:Dictionary<String,String> = [:]
+    open var commonHeader:[String:String] = [:]
     
     /** 公用头部 */
-    private var defaultHeader:Dictionary<String,String>? = nil
+    private var defaultHeader:[String:String]? = nil
     
     /** 通用参数 */
-    open var commonParams:Dictionary<String,Any> = [:]
+    open var commonParams:[String:Any] = [:]
     
     /** 公用参数 */
-    private var defaultParams:Dictionary<String,Any>? = nil
+    private var defaultParams:[String:Any]? = nil
     
     /** 接口前缀 */
     open var prefixUrl:String? = nil
@@ -94,21 +108,21 @@ public class YKSwiftNetworking:NSObject
     /**
      动态参数的配置，每次执行请求都会加上这次的参数
      */
-    open var dynamicParamsConfig:((_ request: YKSwiftNetworkRequest) -> Dictionary<String,Any>)? = nil
+    open var dynamicParamsConfig:((_ request: YKSwiftNetworkRequest) -> [String:Any])? = nil
     /**
      动态请求头的配置，每次执行请求都会加上这次的请求头
      */
-    open var dynamicHeaderConfig:((_ request: YKSwiftNetworkRequest) -> Dictionary<String,String>)? = nil
+    open var dynamicHeaderConfig:((_ request: YKSwiftNetworkRequest) -> [String:String])? = nil
     
     /// 根据需求处理正在加载的内容
     open var loadingHandle:((_ loading:Bool) -> Void)?
     
     
     /** 保存一下手动传入的Header，保证他是最高优先级 */
-    private var inputHeaders:Dictionary<String,Any> = [:]
+    private var inputHeaders:[String:String] = [:]
     
     /** 保存一下手动传入的参数，保证他是最高优先级 */
-    private var inputParams:Dictionary<String,Any> = [:]
+    private var inputParams:[String:Any] = [:]
     
     
     public override init() {
@@ -121,7 +135,7 @@ public class YKSwiftNetworking:NSObject
     ///   - defaultParams: 默认菜蔬
     ///   - prefixUrl: 默认连接头
     ///   - handleResponse: 默认处理方式
-    public convenience init(_ defaultHeader: Dictionary<String,String>?, _ defaultParams: Dictionary<String,Any>?, _ prefixUrl: String?, _ handleResponse: @escaping((_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Error?) ) {
+    public convenience init(_ defaultHeader: [String:String]? = nil, _ defaultParams: [String:Any]? = nil, _ prefixUrl: String? = nil, _ handleResponse: ((_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Error?)? = nil ) {
         self.init()
         self.defaultHeader = defaultHeader
         self.defaultParams = defaultParams
@@ -172,22 +186,22 @@ public class YKSwiftNetworking:NSObject
     /// 本次请求参数
     /// - Parameter params: 参数
     /// - Returns: networking
-    public func params(_ params: Dictionary<String,Any>?) -> YKSwiftNetworking {
+    public func params(_ params: [String:Any]?) -> YKSwiftNetworking {
         if let par = params {
             self.inputParams = par
             for (key,value) in par {
-                self.request.params[key] = value
+                self.request.params.updateValue(value, forKey: key)
             }
         }
         
         return self
     }
     
-    public func header(_ header: Dictionary<String,String>?) -> YKSwiftNetworking {
+    public func header(_ header: [String:String]?) -> YKSwiftNetworking {
         if let hea = header {
             self.inputHeaders = hea
             for (key,value) in hea {
-                self.request.header[key] = value
+                self.request.header.updateValue(value, forKey: key)
             }
         }
         return self
@@ -318,14 +332,22 @@ public class YKSwiftNetworking:NSObject
         let observable = Observable<(request: YKSwiftNetworkRequest,response: YKSwiftNetworkResponse)>.create { [weak self] observer in
             guard let weakSelf = self else {
                 observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"self处理错误",
+                    NSLocalizedFailureReasonErrorKey:"self处理错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
+                ]))
+                observer.onCompleted()
+                return Disposables.create() }
+            
+            
+            guard let request = weakSelf.request.copy() as? YKSwiftNetworkRequest else { observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
                     NSLocalizedDescriptionKey:"初始化发生错误",
                     NSLocalizedFailureReasonErrorKey:"初始化发生错误",
                     NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
                 ]))
+                observer.onCompleted()
                 return Disposables.create() }
             
-            
-            let request = weakSelf.request.copy() as! YKSwiftNetworkRequest
             let canContinue = weakSelf.handleConfig(with: request)
             if !canContinue {
                 weakSelf._request = nil
@@ -423,14 +445,21 @@ public class YKSwiftNetworking:NSObject
             
             guard let weakSelf = self else {
                 observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                    NSLocalizedDescriptionKey:"初始化发生错误",
-                    NSLocalizedFailureReasonErrorKey:"初始化发生错误",
-                    NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+                    NSLocalizedDescriptionKey:"self处理错误",
+                    NSLocalizedFailureReasonErrorKey:"self处理错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
                 ]))
+                observer.onCompleted()
                 return Disposables.create() }
             
+            guard let request = weakSelf.request.copy() as? YKSwiftNetworkRequest else { observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"request初始化错误",
+                    NSLocalizedFailureReasonErrorKey:"request初始化错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"request初始化错误",
+                ]))
+                observer.onCompleted()
+                return Disposables.create() }
             
-            let request = weakSelf.request.copy() as! YKSwiftNetworkRequest
             request.header.updateValue("multipart/form-data", forKey: "content-type")
             let canContinue = weakSelf.handleConfig(with: request)
             if !canContinue {
@@ -526,13 +555,21 @@ public class YKSwiftNetworking:NSObject
             
             guard let weakSelf = self else {
                 observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                    NSLocalizedDescriptionKey:"初始化发生错误",
-                    NSLocalizedFailureReasonErrorKey:"初始化发生错误",
-                    NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+                    NSLocalizedDescriptionKey:"self处理错误",
+                    NSLocalizedFailureReasonErrorKey:"self处理错误",
+                    NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
                 ]))
+                observer.onCompleted()
                 return Disposables.create() }
             
-            let request = weakSelf.request.copy() as! YKSwiftNetworkRequest
+            guard let request = weakSelf.request.copy() as? YKSwiftNetworkRequest else { observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                NSLocalizedDescriptionKey:"request初始化错误",
+                NSLocalizedFailureReasonErrorKey:"request初始化错误",
+                NSLocalizedRecoverySuggestionErrorKey:"request初始化错误",
+            ]))
+                observer.onCompleted()
+                return Disposables.create() }
+            
             let canContinue = weakSelf.handleConfig(with: request)
             if !canContinue {
                 weakSelf._request = nil
@@ -620,7 +657,7 @@ public class YKSwiftNetworking:NSObject
     ///   - header: 请求头文件
     ///   - complate: 请求回调
     /// - Returns: 空
-    public static func executeByMethod(method: YKNetworkRequestMethod,url: String,params: Dictionary<String,Any>?,header: Dictionary<String,String>?,complate: @escaping complateBlockType) -> Void {
+    public static func executeByMethod(method: YKNetworkRequestMethod,url: String,params: [String:Any]?,header: [String:String]?,complate: @escaping complateBlockType) -> Void {
         _ = YKSwiftNetworking.init(nil, nil, nil, { response, request in
             return nil
         }).url(url).method(method).params(params).header(header).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().mapWithRawData().subscribe(onNext: { result in
@@ -639,7 +676,7 @@ public class YKSwiftNetworking:NSObject
     ///   - header: 请求头文件
     ///   - complate: 请求方式
     /// - Returns: 空
-    public static func GET(url: String, params: Dictionary<String,Any>?, header: Dictionary<String,String>?, _  complate: @escaping complateBlockType) -> Void {
+    public static func GET(url: String, params: [String:Any]?, header: [String:String]?, _  complate: @escaping complateBlockType) -> Void {
         YKSwiftNetworking.executeByMethod(method: .GET, url: url, params: params, header: header, complate: complate)
     }
     
@@ -650,7 +687,7 @@ public class YKSwiftNetworking:NSObject
     ///   - header: 请求头文件
     ///   - complate: 请求方式
     /// - Returns: 空
-    public static func POST(url: String, params: Dictionary<String,Any>?, header: Dictionary<String,String>?,  _ complate: @escaping complateBlockType) -> Void {
+    public static func POST(url: String, params: [String:Any]?, header: [String:String]?,  _ complate: @escaping complateBlockType) -> Void {
         YKSwiftNetworking.executeByMethod(method: .POST, url: url, params: params, header: header, complate: complate)
     }
     
@@ -666,7 +703,7 @@ public class YKSwiftNetworking:NSObject
     ///   - progress: 上传进度
     ///   - complate: 上传回调
     /// - Returns: 空
-    public static func UPLOAD(url: String,data: Data, filename: String, mimeType: String, formDataName: String,params: Dictionary<String,Any>?,header: Dictionary<String,String>?,progress: @escaping progressBlockType, complate: @escaping complateBlockType) -> Void {
+    public static func UPLOAD(url: String,data: Data, filename: String, mimeType: String, formDataName: String,params: [String:Any]?,header: [String:String]?,progress: @escaping progressBlockType, complate: @escaping complateBlockType) -> Void {
         _ = YKSwiftNetworking.init().url(url).method(.POST).params([:]).uploadData(data: data, filename: filename, mimeType: mimeType, formDataName: formDataName).progress(progress).uploadDataSignal().mapWithRawData().subscribe(onNext: { result in
             complate(result,nil);
         }, onError: { error in
@@ -705,7 +742,9 @@ public class YKSwiftNetworking:NSObject
         let config = YKSwiftNetworkingConfig.share
         
         if !request.disableDynamicHeader && ((self.dynamicHeaderConfig != nil) || config.dynamicHeaderConfig != nil) {
-            var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,String>?)? = nil
+            var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->[String:String]?) = { request in
+                return nil
+            }
             
             if self.dynamicHeaderConfig != nil {
                 dynamicHeaderConfig = self.dynamicHeaderConfig!
@@ -713,17 +752,19 @@ public class YKSwiftNetworking:NSObject
                 dynamicHeaderConfig = config.dynamicHeaderConfig!
             }
             
-            let theHeader = dynamicHeaderConfig!(requestCopy) ?? [:]
-            
-            for (key,value) in theHeader {
-                if !(self.inputHeaders.keys.contains(key)) {
-                    request.header[key] = value
+            if let theHeader = dynamicHeaderConfig(requestCopy) {
+                for (key,value) in theHeader {
+                    if !(self.inputHeaders.keys.contains(key)) {
+                        request.header.updateValue(value, forKey: key)
+                    }
                 }
             }
         }
         
         if !request.disableDynamicParams && ((self.dynamicParamsConfig != nil) || config.dynamicParamsConfig != nil)  {
-            var dynamicParamsConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,Any>?)? = nil
+            var dynamicParamsConfig:((_ request:YKSwiftNetworkRequest)->[String:Any]?) = { request in
+                return nil
+            }
             
             if self.dynamicParamsConfig != nil {
                 dynamicParamsConfig = self.dynamicParamsConfig!
@@ -731,11 +772,11 @@ public class YKSwiftNetworking:NSObject
                 dynamicParamsConfig = config.dynamicParamsConfig!
             }
             
-            let theParams = dynamicParamsConfig!(requestCopy) ?? [:]
-            
-            for (key,value) in theParams {
-                if !(self.inputParams.keys.contains(key)) {
-                    request.params[key] = value
+            if let theParams = dynamicParamsConfig(requestCopy) {
+                for (key,value) in theParams {
+                    if !(self.inputParams.keys.contains(key)) {
+                        request.params.updateValue(value, forKey: key)
+                    }
                 }
             }
         }

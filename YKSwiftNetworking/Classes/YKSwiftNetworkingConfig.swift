@@ -16,10 +16,10 @@ public class YKSwiftNetworkingConfig: NSObject
     public var timeoutInterval:Double = 30.0
     
     /** 公用头部 */
-    public var defaultHeader:Dictionary<String,Any>?
+    public var defaultHeader:[String:String]?
     
     /** 公用参数 */
-    public var defaultParams:Dictionary<String,String>?
+    public var defaultParams:[String:Any]?
 
     /** 公用url前缀 */
     public var defaultPrefixUrl:String?
@@ -32,13 +32,11 @@ public class YKSwiftNetworkingConfig: NSObject
     public var distinguishError:Bool = true
     
     /** 动态添加参数，每次执行网络请求前都会访问一遍 修改的值优先级最低 */
-    public var dynamicParamsConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,Any>?)?
+    public var dynamicParamsConfig:((_ request:YKSwiftNetworkRequest)->[String:Any]?)?
     
     /** 动态添加请求头，每次执行网络请求前都会访问一遍 修改的值优先级最低 */
-    public var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->Dictionary<String,String>?)?
+    public var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->[String:String]?)?
     
-    /** 根据需求处理回调信息判断是否是正确的回调 即中转统一处理源数据 */
-    public var handleResponse:((_ response:YKSwiftNetworkResponse,_ request:YKSwiftNetworkRequest)->Error?)?
     
     /** 正在加载 */
     public var loadingHandle:((_ loading:Bool) -> Void)?
@@ -57,7 +55,7 @@ public class YKSwiftNetworkingConfig: NSObject
      */
     
     @available (*,deprecated)
-    public func setParams(params:Dictionary<String,Any>, responseObj:Any, forUrl:String)->Void{
+    public func setParams(params:[String:Any], responseObj:Any, forUrl:String)->Void{
 //        String.flatMap("")
     }
     

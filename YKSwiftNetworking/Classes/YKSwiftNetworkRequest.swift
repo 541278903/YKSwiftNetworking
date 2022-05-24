@@ -40,10 +40,10 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
     public var urlStr:String = ""
     
     /** 请求参数 */    //MARK:rewrite
-    public var params:Dictionary<String,Any> = [:]
+    public var params:[String:Any] = [:]
     
     /** 请求头 */   //MARK:rewrite
-    public var header:Dictionary<String,String> = [:]
+    public var header:[String:String] = [:]
     
     /** 请求方式 */
     public var method:YKNetworkRequestMethod = .GET

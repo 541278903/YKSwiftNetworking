@@ -8,12 +8,12 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftNetworking'
-  s.version          = '1.0.1'
+  s.version          = '1.1.0'
   s.summary          = 'A short description of YKSwiftNetworking.'
 
 
   s.description      = <<-DESC
-              swift网络请求框架
+          swift网络请求框架
                        DESC
 
   s.homepage         = 'https://gitee.com/Edwrard/YKSwiftNetworking'
