@@ -22,6 +22,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://gitee.com/Edwrard/YKSwiftNetworking.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '9.0'
+  s.swift_version = '4.2'
   s.dependency  'Alamofire', '4.9.1'
   s.dependency  'RxSwift'
   s.dependency  'SwiftyJSON'
