@@ -792,12 +792,6 @@ public class YKSwiftNetworking:NSObject
     
     private func config(with request: YKSwiftNetworkRequest) -> Void {
         //TODO:类似设置serialize
-        let _:Alamofire.SessionManager = {
-            let configuration = URLSessionConfiguration.default
-            //请求超时时间15秒
-            configuration.timeoutIntervalForRequest = YKSwiftNetworkingConfig.share.timeoutInterval
-            return Alamofire.SessionManager(configuration: configuration)
-        }()
         
     }
     
