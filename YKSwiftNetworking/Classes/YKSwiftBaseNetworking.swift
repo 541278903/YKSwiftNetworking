@@ -17,20 +17,25 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         let task = AF.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: HTTPHeaders.init(request.header), interceptor: nil, requestModifier: { $0.timeoutInterval = YKSwiftNetworkingConfig.share.timeoutInterval }).downloadProgress { progress in
             progressCallBack(progress.fractionCompleted)
-        }.response(queue: .main) { [weak request] response in
-            guard let req = request else { return }
-            if response.error != nil {
-                failureCallBack(req,false,nil,response.error?.underlyingError)
-            }else {
+        }.response(queue: .main) { response in
+            switch response.result {
+            case .success(let data):
                 let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: response.data)
+                ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: data)
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
-                successCallBack(ykresponse,req)
-            }
-            
-            if req.isShowLoading {
-                YKSwiftNetworkingConfig.share.loadingHandle?(false)
+                successCallBack(ykresponse,request)
+                if request.isShowLoading {
+                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+                }
+                break
+                
+            case .failure(let error):
+                failureCallBack(request,false,nil,error.underlyingError)
+                if request.isShowLoading {
+                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+                }
+                break
             }
         }
         
@@ -51,20 +56,24 @@ internal class YKSwiftBaseNetworking: NSObject {
             multipartFormData.append(req.uploadFileData!, withName: req.formDataName!, fileName: req.uploadName!, mimeType: req.uploadMimeType!)
         }, to: request.urlStr).uploadProgress { progress in
             progressCallBack(progress.fractionCompleted)
-        }.response { [weak request] response in
-            guard let req = request else { return }
-            if response.error != nil {
-                failureCallBack(req,false,nil,response.error?.underlyingError)
-            }else {
+        }.response { response in
+            switch response.result {
+            case .success(let data):
                 let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: response.data)
+                ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: data)
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
-                successCallBack(ykresponse,req)
-            }
-            
-            if req.isShowLoading {
-                YKSwiftNetworkingConfig.share.loadingHandle?(false)
+                successCallBack(ykresponse,request)
+                if request.isShowLoading {
+                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+                }
+                break
+            case .failure(let error):
+                failureCallBack(request,false,nil,error.underlyingError)
+                if request.isShowLoading {
+                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+                }
+                break
             }
         }
         task.resume()
@@ -78,51 +87,53 @@ internal class YKSwiftBaseNetworking: NSObject {
     {
         YKSwiftBaseNetworking.configWith(request: request)
             
-//        let destination: DownloadRequest.DownloadFileDestination = { [weak request] url, options in
-//            var documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-//
-//            if let req = request {
-//                let urllastPathComponent = URL.init(string: req.urlStr)!.lastPathComponent
-//
-//                if req.destPath.count > 0 {
-//                    documentsURL.appendPathComponent(req.destPath)
-//                }
-//                var isDic: ObjCBool = ObjCBool(false)
-//                let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
-//                if exists && isDic.boolValue {
-//                    // Exists. Directory.
-//                    documentsURL.appendPathComponent("\(urllastPathComponent)")
-//                } else if exists {
-//                    // Exists.
-//                } else {
-//                    try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
-//                    documentsURL.appendPathComponent("\(urllastPathComponent)")
-//
-//                }
-//            }
-//
-//            return (documentsURL, [.createIntermediateDirectories])
-//       }
-//
-//        let task = Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header, to: destination).downloadProgress { progress in
-//            progressCallBack(progress.fractionCompleted)
-//        }.response { [weak request] response in
-//
-//            if let req = request {
-//                if response.error != nil {
-//                    failureCallBack( req, false, nil, response.error)
-//                } else {
-//                    let ykresponse = YKSwiftNetworkResponse.init()
-//                    ykresponse.rawData = ["url":response.destinationURL!.relativeString]
-//                    ykresponse.isCache = false
-//                    ykresponse.code = response.response?.statusCode ?? 0
-//                    successCallBack(ykresponse, req)
-//                }
-//            }
-//        }
-//        task.resume()
-//        return task
-        return AF.request("", method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil, interceptor: nil, requestModifier: nil)
+        let destination: DownloadRequest.Destination = { _, _ in
+            var documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+
+            let urllastPathComponent = URL.init(string: request.urlStr)!.lastPathComponent
+
+            if request.destPath.count > 0 {
+                documentsURL.appendPathComponent(request.destPath)
+            }
+            var isDic: ObjCBool = ObjCBool(false)
+            let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
+            if exists && isDic.boolValue {
+                // Exists. Directory.
+                documentsURL.appendPathComponent("\(urllastPathComponent)")
+            } else if exists {
+                // Exists.
+            } else {
+                try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
+                documentsURL.appendPathComponent("\(urllastPathComponent)")
+
+            }
+
+            return (documentsURL, [.removePreviousFile, .createIntermediateDirectories])
+        }
+        let task = AF.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: HTTPHeaders.init(request.header), interceptor: nil, requestModifier: nil, to: destination).downloadProgress(closure: { progress in
+            progressCallBack(progress.fractionCompleted)
+        }).response { response in
+            switch response.result {
+            case .success(let url):
+                let ykresponse = YKSwiftNetworkResponse.init()
+                ykresponse.rawData = ["url":url]
+                ykresponse.isCache = false
+                ykresponse.code = response.response?.statusCode ?? 0
+                successCallBack(ykresponse,request)
+                if request.isShowLoading {
+                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+                }
+                break
+            case .failure(let error):
+                failureCallBack(request,false,nil,error.underlyingError)
+                if request.isShowLoading {
+                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+                }
+                break
+            }
+        }
+        task.resume()
+        return task
     }
 
     private static func configWith(request:YKSwiftNetworkRequest) -> Void {

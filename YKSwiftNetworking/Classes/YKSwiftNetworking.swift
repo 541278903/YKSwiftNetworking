@@ -114,8 +114,6 @@ public class YKSwiftNetworking:NSObject
      */
     open var dynamicHeaderConfig:((_ request: YKSwiftNetworkRequest) -> [String:String])? = nil
     
-    /// 根据需求处理正在加载的内容
-    open var loadingHandle:((_ loading:Bool) -> Void)?
     
     
     /** 保存一下手动传入的Header，保证他是最高优先级 */
@@ -355,9 +353,6 @@ public class YKSwiftNetworking:NSObject
                 observer.onCompleted()
                 return Disposables.create()
             }
-            if request.isShowLoading {
-                weakSelf.loadingHandle?(true);
-            }
             
             var progressBlock:((_ progress:Double)->Void)?
             if let proBlock = request.progressBlock {
@@ -371,56 +366,40 @@ public class YKSwiftNetworking:NSObject
                     block(progress)
                 }
             }, successCallBack: { [weak self] response, request in
-                guard let weakSelf = self else {
-                    observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                        NSLocalizedDescriptionKey:"self处理错误",
-                        NSLocalizedFailureReasonErrorKey:"self处理错误",
-                        NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
-                    ]))
-                    observer.onCompleted()
-                    return }
                 
-                if request.isShowLoading {
-                    weakSelf.loadingHandle?(false);
-                }
-                
-                var error:Error? = nil
-                if weakSelf.handleResponse != nil && !request.disableHandleResponse
-                {
-                    error = weakSelf.handleResponse!(response,request)
-                    if error != nil {
-                        observer.onError(error!)
+                if let weakSelf = self {
+                    var error:Error? = nil
+                    if weakSelf.handleResponse != nil && !request.disableHandleResponse
+                    {
+                        error = weakSelf.handleResponse!(response,request)
+                        if error != nil {
+                            observer.onError(error!)
+                        }else{
+                            observer.onNext((request,response))
+                        }
                     }else{
                         observer.onNext((request,response))
                     }
-                }else{
+                    
+                    weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                }else {
                     observer.onNext((request,response))
                 }
                 
-                weakSelf.saveTask(request: request, response: response, isException: error != nil)
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
-                
-                guard let weakSelf = self else {
-                    observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                        NSLocalizedDescriptionKey:"self处理错误",
-                        NSLocalizedFailureReasonErrorKey:"self处理错误",
-                        NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
-                    ]))
-                    observer.onCompleted()
-                    return }
                 
                 if let err = error {
                     observer.onError(err)
                 }else {
-                    if request.isShowLoading {
-                        weakSelf.loadingHandle?(false);
-                    }
                     
                     let ykresponse = YKSwiftNetworkResponse()
                     ykresponse.rawData = responseObject
                     observer.onNext((request,ykresponse))
-                    weakSelf.saveTask(request: request, response: ykresponse, isException: true)
+                    
+                    if let weakSelf = self {
+                        weakSelf.saveTask(request: request, response: ykresponse, isException: true)
+                    }
                 }
                 observer.onCompleted()
             })
@@ -468,10 +447,6 @@ public class YKSwiftNetworking:NSObject
                 observer.onCompleted()
                 return Disposables.create()
             }
-            if request.isShowLoading {
-                weakSelf.loadingHandle?(true);
-            }
-            
            
             if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil && request.formDataName != nil{
                 
@@ -480,54 +455,38 @@ public class YKSwiftNetworking:NSObject
                     progressBlock = proBlock
                 }
                 
-                YKSwiftBaseNetworking.upload(request: request) { progress in
+                request.task =  YKSwiftBaseNetworking.upload(request: request) { progress in
                     if let block = progressBlock {
                         block(progress)
                     }
                 } successCallBack: { [weak self] response, request in
-                    guard let weakSelf = self else {
-                        observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                            NSLocalizedDescriptionKey:"self处理错误",
-                            NSLocalizedFailureReasonErrorKey:"self处理错误",
-                            NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
-                        ]))
-                        observer.onCompleted()
-                        return }
-                    if request.isShowLoading {
-                        weakSelf.loadingHandle?(false);
-                    }
-                    var error:Error? = nil
-                    if weakSelf.handleResponse != nil && !request.disableHandleResponse
-                    {
-                        error = weakSelf.handleResponse!(response,request)
-                        if error != nil {
-                            observer.onError(error!)
-                        }else{
+                    if let weakSelf = self {
+                        var error:Error? = nil
+                        if weakSelf.handleResponse != nil && !request.disableHandleResponse {
+                            error = weakSelf.handleResponse!(response,request)
+                            if error != nil {
+                                observer.onError(error!)
+                            }else{
+                                observer.onNext((request,response))
+                            }
+                        }else {
                             observer.onNext((request,response))
                         }
-                    }else{
+                        weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                    }else {
                         observer.onNext((request,response))
                     }
-                    weakSelf.saveTask(request: request, response: response, isException: error != nil)
                     observer.onCompleted()
                 } failureCallBack: { [weak self] request, isCache, responseObject, error in
-                    guard let weakSelf = self else {
-                        observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                            NSLocalizedDescriptionKey:"self处理错误",
-                            NSLocalizedFailureReasonErrorKey:"self处理错误",
-                            NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
-                        ]))
-                        observer.onCompleted()
-                        return }
+                    
                     if let err = error {
                         observer.onError(err)
                     }else {
-                        if request.isShowLoading {
-                            weakSelf.loadingHandle?(false);
-                        }
                         let ykresponse = YKSwiftNetworkResponse.init()
                         observer.onNext((request,ykresponse))
-                        weakSelf.saveTask(request: request, response: ykresponse, isException: true)
+                        if let weakSelf = self {
+                            weakSelf.saveTask(request: request, response: ykresponse, isException: true)
+                        }
                     }
                     observer.onCompleted()
                 }
@@ -536,7 +495,6 @@ public class YKSwiftNetworking:NSObject
                 observer.onError(error)
                 observer.onCompleted()
             }
-            request.task?.resume()
             weakSelf._request = nil
             
             return Disposables.create()
@@ -577,9 +535,6 @@ public class YKSwiftNetworking:NSObject
                 observer.onCompleted()
                 return Disposables.create()
             }
-            if request.isShowLoading {
-                weakSelf.loadingHandle?(true);
-            }
             
             var progressBlock:((_ progress:Double)->Void)?
             if let proBlock = request.progressBlock {
@@ -591,53 +546,34 @@ public class YKSwiftNetworking:NSObject
                     block(progress)
                 }
             }, successCallBack: { [weak self] response, request in
-                
-                guard let weakSelf = self else {
-                    observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                        NSLocalizedDescriptionKey:"self处理错误",
-                        NSLocalizedFailureReasonErrorKey:"self处理错误",
-                        NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
-                    ]))
-                    observer.onCompleted()
-                    return }
-                if request.isShowLoading {
-                    weakSelf.loadingHandle?(false);
-                }
-                var error:Error? = nil
-                if weakSelf.handleResponse != nil && !request.disableHandleResponse
-                {
-                    error = weakSelf.handleResponse!(response,request)
-                    if error != nil {
-                        observer.onError(error!)
+                if let weakSelf = self {
+                    var error:Error? = nil
+                    if weakSelf.handleResponse != nil && !request.disableHandleResponse
+                    {
+                        error = weakSelf.handleResponse!(response,request)
+                        if error != nil {
+                            observer.onError(error!)
+                        }else{
+                            observer.onNext((request,response))
+                        }
                     }else{
                         observer.onNext((request,response))
                     }
-                }else{
+                    weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                }else {
                     observer.onNext((request,response))
                 }
-                weakSelf.saveTask(request: request, response: response, isException: error != nil)
-                
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
-                
-                guard let weakSelf = self else {
-                    observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                        NSLocalizedDescriptionKey:"self处理错误",
-                        NSLocalizedFailureReasonErrorKey:"self处理错误",
-                        NSLocalizedRecoverySuggestionErrorKey:"self处理错误",
-                    ]))
-                    observer.onCompleted()
-                    return }
                 
                 if let err = error {
                     observer.onError(err)
                 }else {
-                    if request.isShowLoading {
-                        weakSelf.loadingHandle?(false);
-                    }
                     let ykresponse = YKSwiftNetworkResponse.init()
                     observer.onNext((request,ykresponse))
-                    weakSelf.saveTask(request: request, response: ykresponse, isException: true)
+                    if let weakSelf = self {
+                        weakSelf.saveTask(request: request, response: ykresponse, isException: true)
+                    }
                 }
                 observer.onCompleted()
             })
@@ -647,85 +583,6 @@ public class YKSwiftNetworking:NSObject
         return observable
     }
     
-//    MARK:直接请求独立响应式
-    
-    /// 不使用响应普通正常请求
-    /// - Parameters:
-    ///   - method: 请求方式
-    ///   - url: 请求地址
-    ///   - params: 请求参数
-    ///   - header: 请求头文件
-    ///   - complate: 请求回调
-    /// - Returns: 空
-    public static func executeByMethod(method: YKNetworkRequestMethod,url: String,params: [String:Any]?,header: [String:String]?,complate: @escaping complateBlockType) -> Void {
-        _ = YKSwiftNetworking.init(nil, nil, nil, { response, request in
-            return nil
-        }).url(url).method(method).params(params).header(header).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().mapWithRawData().subscribe(onNext: { result in
-            complate(result,nil)
-        }, onError: { error in
-            complate(nil,error)
-        }).disposed(by: DisposeBag())
-
-    }
-    
-    
-    /// 不适用响应默认GET请求
-    /// - Parameters:
-    ///   - url: 请求地址
-    ///   - params: 请求参数
-    ///   - header: 请求头文件
-    ///   - complate: 请求方式
-    /// - Returns: 空
-    public static func GET(url: String, params: [String:Any]?, header: [String:String]?, _  complate: @escaping complateBlockType) -> Void {
-        YKSwiftNetworking.executeByMethod(method: .GET, url: url, params: params, header: header, complate: complate)
-    }
-    
-    /// 不适用响应默认POST请求
-    /// - Parameters:
-    ///   - url: 请求地址
-    ///   - params: 请求参数
-    ///   - header: 请求头文件
-    ///   - complate: 请求方式
-    /// - Returns: 空
-    public static func POST(url: String, params: [String:Any]?, header: [String:String]?,  _ complate: @escaping complateBlockType) -> Void {
-        YKSwiftNetworking.executeByMethod(method: .POST, url: url, params: params, header: header, complate: complate)
-    }
-    
-    
-    /// 不适用响应默认上传
-    /// - Parameters:
-    ///   - url: 上传地址
-    ///   - data: 上传数据
-    ///   - filename: 上传文件名
-    ///   - mimeType: 上传文件类型
-    ///   - params: 上传参数
-    ///   - header: 上传头文件
-    ///   - progress: 上传进度
-    ///   - complate: 上传回调
-    /// - Returns: 空
-    public static func UPLOAD(url: String,data: Data, filename: String, mimeType: String, formDataName: String,params: [String:Any]?,header: [String:String]?,progress: @escaping progressBlockType, complate: @escaping complateBlockType) -> Void {
-        _ = YKSwiftNetworking.init().url(url).method(.POST).params([:]).uploadData(data: data, filename: filename, mimeType: mimeType, formDataName: formDataName).progress(progress).uploadDataSignal().mapWithRawData().subscribe(onNext: { result in
-            complate(result,nil);
-        }, onError: { error in
-            complate(nil,error)
-        }).disposed(by: DisposeBag())
-    }
-    
-    
-    /// 不适用响应默认下载
-    /// - Parameters:
-    ///   - url: 下载地址
-    ///   - destPath: 下载缓存地址
-    ///   - progress: 下载进度
-    ///   - complate: 下载回调
-    /// - Returns: 空
-    public static func DOWNLOAD(url: String,destPath: String,progress: @escaping progressBlockType, complate: @escaping complateBlockType) -> Void {
-        _ = YKSwiftNetworking.init().url(url).method(.POST).downloadDestPath(destPath).progress(progress).disableDynamicParams().disableDynamicHeader().disableHandleResponse().downloadDataSignal().mapWithRawData().subscribe(onNext: { result in
-            complate(result,nil)
-        }, onError: { error in
-            complate(nil,error)
-        }).disposed(by: DisposeBag())
-    }
     
     
     
