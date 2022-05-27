@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftNetworking'
-  s.version          = '2.0.0'
+  s.version          = '3.0.0'
   s.summary          = 'A short description of YKSwiftNetworking.'
 
 
@@ -22,9 +22,9 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://gitee.com/Edwrard/YKSwiftNetworking.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '10.0'
-  s.swift_version = '5.0'
+  s.swift_version = '5.3'
   s.dependency  'Alamofire', "~> 5.0"
-  s.dependency  'RxSwift', "~> 5.0"
+  s.dependency  'RxSwift', "~> 6.0"
   s.dependency  'SwiftyJSON'
 
   s.source_files = 'YKSwiftNetworking/Classes/**/*'
