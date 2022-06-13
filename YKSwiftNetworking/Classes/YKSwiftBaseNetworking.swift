@@ -25,24 +25,24 @@ internal class YKSwiftBaseNetworking: NSObject {
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 successCallBack(ykresponse,request)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+//                if request.isShowLoading {
+//                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+//                }
                 break
                 
             case .failure(let error):
                 failureCallBack(request,false,nil,error.underlyingError)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+//                if request.isShowLoading {
+//                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+//                }
                 break
             }
         }
         
         task.resume()
-        if request.isShowLoading {
-            YKSwiftNetworkingConfig.share.loadingHandle?(true)
-        }
+//        if request.isShowLoading {
+//            YKSwiftNetworkingConfig.share.loadingHandle?(true)
+//        }
         return task
     }
     
@@ -64,22 +64,22 @@ internal class YKSwiftBaseNetworking: NSObject {
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 successCallBack(ykresponse,request)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+//                if request.isShowLoading {
+//                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+//                }
                 break
             case .failure(let error):
                 failureCallBack(request,false,nil,error.underlyingError)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+//                if request.isShowLoading {
+//                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+//                }
                 break
             }
         }
         task.resume()
-        if request.isShowLoading {
-            YKSwiftNetworkingConfig.share.loadingHandle?(true)
-        }
+//        if request.isShowLoading {
+//            YKSwiftNetworkingConfig.share.loadingHandle?(true)
+//        }
         return task
     }
     
@@ -120,15 +120,15 @@ internal class YKSwiftBaseNetworking: NSObject {
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 successCallBack(ykresponse,request)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+//                if request.isShowLoading {
+//                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+//                }
                 break
             case .failure(let error):
                 failureCallBack(request,false,nil,error.underlyingError)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+//                if request.isShowLoading {
+//                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
+//                }
                 break
             }
         }
