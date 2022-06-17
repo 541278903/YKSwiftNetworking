@@ -354,17 +354,10 @@ public class YKSwiftNetworking:NSObject
                 return Disposables.create()
             }
             
-            var progressBlock:((_ progress:Double)->Void)?
-            if let proBlock = request.progressBlock {
-                progressBlock = proBlock
-            }
-            
             
             request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
                 
-                if let block = progressBlock {
-                    block(progress)
-                }
+                request.progressBlock?(progress)
             }, successCallBack: { [weak self] response, request in
                 
                 if let weakSelf = self {
