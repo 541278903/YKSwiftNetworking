@@ -40,11 +40,16 @@ internal class YKSwiftBaseNetworking: NSObject {
     {
         YKSwiftBaseNetworking.configWith(request: request)
         
-        
         let task =  AF.upload(multipartFormData: { [weak request] multipartFormData in
             guard let req = request else { return }
             multipartFormData.append(req.uploadFileData!, withName: req.formDataName!, fileName: req.uploadName!, mimeType: req.uploadMimeType!)
-        }, to: request.urlStr).uploadProgress { progress in
+            
+            for (key,value) in req.params {
+                let data = "\(value)".data(using: String.Encoding.utf8) ?? Data.init()
+                multipartFormData.append(data, withName: key)
+            }
+            
+        }, to: request.urlStr, method: request.methodStr, headers: HTTPHeaders.init(request.header)).uploadProgress { progress in
             progressCallBack(progress.fractionCompleted)
         }.response { response in
             switch response.result {
