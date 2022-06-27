@@ -37,14 +37,6 @@ public class YKSwiftNetworkingConfig: NSObject
     /** 动态添加请求头，每次执行网络请求前都会访问一遍 修改的值优先级最低 */
     public var dynamicHeaderConfig:((_ request:YKSwiftNetworkRequest)->[String:String]?)?
     
-    
-    /** 正在加载 */
-    private var loadingHandle:((_ loading:Bool) -> Void)?
-    
-    public func toSetLoadingHandle(loadingCallBack:@escaping (_ loading:Bool) -> Void) {
-        self.loadingHandle = loadingCallBack
-    }
-    
     /** 根据需求设置缓存内容 */
     public var cacheRequest:((_ response:YKSwiftNetworkResponse,_ request:YKSwiftNetworkRequest, _ isException:Bool)->Void)?
     
