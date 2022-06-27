@@ -114,7 +114,8 @@ public class YKSwiftNetworking:NSObject
      */
     open var dynamicHeaderConfig:((_ request: YKSwiftNetworkRequest) -> [String:String])? = nil
     
-    
+    /// 根据需求处理正在加载的内容
+    open var loadingHandle:((_ loading:Bool) -> Void)?
     
     /** 保存一下手动传入的Header，保证他是最高优先级 */
     private var inputHeaders:[String:String] = [:]
@@ -354,13 +355,20 @@ public class YKSwiftNetworking:NSObject
                 return Disposables.create()
             }
             
+            if request.isShowLoading {
+                weakSelf.loadingHandle?(true)
+            }
             
             request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
-                
                 request.progressBlock?(progress)
             }, successCallBack: { [weak self] response, request in
                 
                 if let weakSelf = self {
+                    
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false)
+                    }
+                    
                     var error:Error? = nil
                     if weakSelf.handleResponse != nil && !request.disableHandleResponse
                     {
@@ -382,6 +390,12 @@ public class YKSwiftNetworking:NSObject
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
                 
+                if request.isShowLoading,
+                   let weakSelf = self
+                {
+                    weakSelf.loadingHandle?(false)
+                }
+                
                 if let err = error {
                     observer.onError(err)
                 }else {
@@ -391,6 +405,7 @@ public class YKSwiftNetworking:NSObject
                     observer.onNext((request,ykresponse))
                     
                     if let weakSelf = self {
+                        
                         weakSelf.saveTask(request: request, response: ykresponse, isException: true)
                     }
                 }
@@ -440,20 +455,23 @@ public class YKSwiftNetworking:NSObject
                 observer.onCompleted()
                 return Disposables.create()
             }
+            
+            if request.isShowLoading {
+                weakSelf.loadingHandle?(true)
+            }
            
             if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil && request.formDataName != nil{
                 
-                var progressBlock:((_ progress:Double)->Void)?
-                if let proBlock = request.progressBlock {
-                    progressBlock = proBlock
-                }
                 
                 request.task =  YKSwiftBaseNetworking.upload(request: request) { progress in
-                    if let block = progressBlock {
-                        block(progress)
-                    }
+                    request.progressBlock?(progress)
                 } successCallBack: { [weak self] response, request in
                     if let weakSelf = self {
+                        
+                        if request.isShowLoading {
+                            weakSelf.loadingHandle?(false)
+                        }
+                        
                         var error:Error? = nil
                         if weakSelf.handleResponse != nil && !request.disableHandleResponse {
                             error = weakSelf.handleResponse!(response,request)
@@ -471,6 +489,12 @@ public class YKSwiftNetworking:NSObject
                     }
                     observer.onCompleted()
                 } failureCallBack: { [weak self] request, isCache, responseObject, error in
+                    
+                    if request.isShowLoading,
+                       let weakSelf = self
+                    {
+                        weakSelf.loadingHandle?(false)
+                    }
                     
                     if let err = error {
                         observer.onError(err)
@@ -529,23 +553,28 @@ public class YKSwiftNetworking:NSObject
                 return Disposables.create()
             }
             
-            var progressBlock:((_ progress:Double)->Void)?
-            if let proBlock = request.progressBlock {
-                progressBlock = proBlock
+            if request.isShowLoading {
+                weakSelf.loadingHandle?(true)
             }
             
             request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
-                if let block = progressBlock {
-                    block(progress)
-                }
+                request.progressBlock?(progress)
             }, successCallBack: { [weak self] response, request in
                 observer.onNext((request,response))
                 if let weakSelf = self {
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false)
+                    }
                     weakSelf.saveTask(request: request, response: response, isException: false)
-                }else {
                 }
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
+                
+                if request.isShowLoading,
+                   let weakSelf = self
+                {
+                    weakSelf.loadingHandle?(false)
+                }
                 
                 if let err = error {
                     observer.onError(err)
