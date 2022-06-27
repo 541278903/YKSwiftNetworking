@@ -1,16 +1,31 @@
 PODS:
-  - YKSwiftNetworking (0.1.0)
+  - Alamofire (4.9.1)
+  - RxSwift (4.5.0)
+  - SwiftyJSON (5.0.1)
+  - YKSwiftNetworking (1.1.0):
+    - Alamofire (~> 4.1)
+    - RxSwift (~> 4.0)
+    - SwiftyJSON
 
 DEPENDENCIES:
   - YKSwiftNetworking (from `../`)
+
+SPEC REPOS:
+  trunk:
+    - Alamofire
+    - RxSwift
+    - SwiftyJSON
 
 EXTERNAL SOURCES:
   YKSwiftNetworking:
     :path: "../"
 
 SPEC CHECKSUMS:
-  YKSwiftNetworking: 85d7930e89a3057700b6c54a09b379d2639f10bf
+  Alamofire: 85e8a02c69d6020a0d734f6054870d7ecb75cf18
+  RxSwift: f172070dfd1a93d70a9ab97a5a01166206e1c575
+  SwiftyJSON: 2f33a42c6fbc52764d96f13368585094bfd8aa5e
+  YKSwiftNetworking: 63083fb9df370a171fda6ed9d82e9964e26098b1
 
 PODFILE CHECKSUM: 7ea112c28b50ea4f38d878966dca82c141fe9ce2
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.11.3

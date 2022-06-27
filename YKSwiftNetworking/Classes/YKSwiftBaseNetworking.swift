@@ -36,9 +36,7 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         
         task.resume()
-        if request.isShowLoading {
-            
-        }
+        
         return task
     }
     
@@ -47,8 +45,14 @@ internal class YKSwiftBaseNetworking: NSObject {
         YKSwiftBaseNetworking.configWith(request: request)
         
         Alamofire.upload(multipartFormData: { [weak request] multipartFormData in
-            multipartFormData.append(request!.uploadFileData!, withName: request!.formDataName!, fileName: request!.uploadName!, mimeType: request!.uploadMimeType!)
-        }, to: request.urlStr) { [weak request] encodingResult in
+            guard let req = request else { return }
+
+            for (key,value) in req.params {
+                let data = "\(value)".data(using: String.Encoding.utf8) ?? Data.init()
+                multipartFormData.append(data, withName: key)
+            }
+            multipartFormData.append(req.uploadFileData!, withName: req.formDataName!, fileName: req.uploadName!, mimeType: req.uploadMimeType!)
+        }, to: request.urlStr, method: request.methodStr, headers: request.header) { [weak request] encodingResult in
             switch encodingResult{
                 case .success(request: let upladtRequest, streamingFromDisk: _, streamFileURL: _):do {
                     guard let req = request else { return }
@@ -89,17 +93,21 @@ internal class YKSwiftBaseNetworking: NSObject {
                 let urllastPathComponent = URL.init(string: req.urlStr)!.lastPathComponent
                 
                 if req.destPath.count > 0 {
-                    documentsURL.appendPathComponent(req.destPath)
+                    if (req.destPath as NSString).substring(to: 1) == "/" {
+                        documentsURL.appendPathComponent((req.destPath as NSString).substring(from: 1))
+                    }else {
+                        documentsURL.appendPathComponent(req.destPath)
+                    }
                 }
                 var isDic: ObjCBool = ObjCBool(false)
-                let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
+                let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativePath, isDirectory: &isDic)
                 if exists && isDic.boolValue {
                     // Exists. Directory.
                     documentsURL.appendPathComponent("\(urllastPathComponent)")
                 } else if exists {
                     // Exists.
                 } else {
-                    try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
+                    try? FileManager.default.createDirectory(atPath: documentsURL.relativePath, withIntermediateDirectories: true, attributes: nil)
                     documentsURL.appendPathComponent("\(urllastPathComponent)")
 
                 }

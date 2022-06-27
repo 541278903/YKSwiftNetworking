@@ -581,15 +581,9 @@ public class YKSwiftNetworking:NSObject
                 weakSelf.loadingHandle?(true);
             }
             
-            var progressBlock:((_ progress:Double)->Void)?
-            if let proBlock = request.progressBlock {
-                progressBlock = proBlock
-            }
             
             request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
-                if let block = progressBlock {
-                    block(progress)
-                }
+                request.progressBlock?(progress)
             }, successCallBack: { [weak self] response, request in
                 
                 guard let weakSelf = self else {
@@ -603,19 +597,8 @@ public class YKSwiftNetworking:NSObject
                 if request.isShowLoading {
                     weakSelf.loadingHandle?(false);
                 }
-                var error:Error? = nil
-                if weakSelf.handleResponse != nil && !request.disableHandleResponse
-                {
-                    error = weakSelf.handleResponse!(response,request)
-                    if error != nil {
-                        observer.onError(error!)
-                    }else{
-                        observer.onNext((request,response))
-                    }
-                }else{
-                    observer.onNext((request,response))
-                }
-                weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                observer.onNext((request,response))
+                weakSelf.saveTask(request: request, response: response, isException: false)
                 
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
