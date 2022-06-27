@@ -25,24 +25,17 @@ internal class YKSwiftBaseNetworking: NSObject {
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 successCallBack(ykresponse,request)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
                 break
                 
             case .failure(let error):
                 failureCallBack(request,false,nil,error.underlyingError)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+                
                 break
             }
         }
         
         task.resume()
-        if request.isShowLoading {
-            YKSwiftNetworkingConfig.share.loadingHandle?(true)
-        }
+        
         return task
     }
     
@@ -53,8 +46,12 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         let task =  AF.upload(multipartFormData: { [weak request] multipartFormData in
             guard let req = request else { return }
+            for (key,value) in req.params {
+                let data = "\(value)".data(using: String.Encoding.utf8) ?? Data.init()
+                multipartFormData.append(data, withName: key)
+            }
             multipartFormData.append(req.uploadFileData!, withName: req.formDataName!, fileName: req.uploadName!, mimeType: req.uploadMimeType!)
-        }, to: request.urlStr).uploadProgress { progress in
+        }, to: request.urlStr, method: request.methodStr, headers: HTTPHeaders.init(request.header)).uploadProgress { progress in
             progressCallBack(progress.fractionCompleted)
         }.response { response in
             switch response.result {
@@ -64,22 +61,16 @@ internal class YKSwiftBaseNetworking: NSObject {
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 successCallBack(ykresponse,request)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+                
                 break
             case .failure(let error):
                 failureCallBack(request,false,nil,error.underlyingError)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+                
                 break
             }
         }
         task.resume()
-        if request.isShowLoading {
-            YKSwiftNetworkingConfig.share.loadingHandle?(true)
-        }
+        
         return task
     }
     
@@ -93,17 +84,21 @@ internal class YKSwiftBaseNetworking: NSObject {
             let urllastPathComponent = URL.init(string: request.urlStr)!.lastPathComponent
 
             if request.destPath.count > 0 {
-                documentsURL.appendPathComponent(request.destPath)
+                if (request.destPath as NSString).substring(to: 1) == "/" {
+                    documentsURL.appendPathComponent((request.destPath as NSString).substring(from: 1))
+                }else {
+                    documentsURL.appendPathComponent(request.destPath)
+                }
             }
             var isDic: ObjCBool = ObjCBool(false)
-            let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
+            let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativePath, isDirectory: &isDic)
             if exists && isDic.boolValue {
                 // Exists. Directory.
                 documentsURL.appendPathComponent("\(urllastPathComponent)")
             } else if exists {
                 // Exists.
             } else {
-                try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
+                try? FileManager.default.createDirectory(atPath: documentsURL.relativePath, withIntermediateDirectories: true, attributes: nil)
                 documentsURL.appendPathComponent("\(urllastPathComponent)")
 
             }
@@ -120,15 +115,11 @@ internal class YKSwiftBaseNetworking: NSObject {
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 successCallBack(ykresponse,request)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+                
                 break
             case .failure(let error):
                 failureCallBack(request,false,nil,error.underlyingError)
-                if request.isShowLoading {
-                    YKSwiftNetworkingConfig.share.loadingHandle?(false)
-                }
+                
                 break
             }
         }

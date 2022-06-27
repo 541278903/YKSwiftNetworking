@@ -354,17 +354,11 @@ public class YKSwiftNetworking:NSObject
                 return Disposables.create()
             }
             
-            var progressBlock:((_ progress:Double)->Void)?
-            if let proBlock = request.progressBlock {
-                progressBlock = proBlock
-            }
             
             
             request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
                 
-                if let block = progressBlock {
-                    block(progress)
-                }
+                request.progressBlock?(progress)
             }, successCallBack: { [weak self] response, request in
                 
                 if let weakSelf = self {
@@ -450,15 +444,9 @@ public class YKSwiftNetworking:NSObject
            
             if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil && request.formDataName != nil{
                 
-                var progressBlock:((_ progress:Double)->Void)?
-                if let proBlock = request.progressBlock {
-                    progressBlock = proBlock
-                }
                 
                 request.task =  YKSwiftBaseNetworking.upload(request: request) { progress in
-                    if let block = progressBlock {
-                        block(progress)
-                    }
+                    request.progressBlock?(progress)
                 } successCallBack: { [weak self] response, request in
                     if let weakSelf = self {
                         var error:Error? = nil
@@ -536,15 +524,8 @@ public class YKSwiftNetworking:NSObject
                 return Disposables.create()
             }
             
-            var progressBlock:((_ progress:Double)->Void)?
-            if let proBlock = request.progressBlock {
-                progressBlock = proBlock
-            }
-            
             request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
-                if let block = progressBlock {
-                    block(progress)
-                }
+                request.progressBlock?(progress)
             }, successCallBack: { [weak self] response, request in
                 if let weakSelf = self {
                     var error:Error? = nil
