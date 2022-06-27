@@ -79,17 +79,22 @@ internal class YKSwiftBaseNetworking: NSObject {
             let urllastPathComponent = URL.init(string: request.urlStr)!.lastPathComponent
 
             if request.destPath.count > 0 {
-                documentsURL.appendPathComponent(request.destPath)
+                if (request.destPath as NSString).substring(to: 1) == "/" {
+                    documentsURL.appendPathComponent((request.destPath as NSString).substring(from: 1))
+                }else {
+                    documentsURL.appendPathComponent(request.destPath)
+                }
             }
             var isDic: ObjCBool = ObjCBool(false)
-            let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativeString, isDirectory: &isDic)
+            let exists: Bool = FileManager.default.fileExists(atPath: documentsURL.relativePath, isDirectory: &isDic)
+            //todo:创建文件夹
             if exists && isDic.boolValue {
                 // Exists. Directory.
                 documentsURL.appendPathComponent("\(urllastPathComponent)")
             } else if exists {
                 // Exists.
             } else {
-                try? FileManager.default.createDirectory(atPath: documentsURL.relativeString, withIntermediateDirectories: true, attributes: nil)
+                try? FileManager.default.createDirectory(atPath: documentsURL.relativePath, withIntermediateDirectories: true, attributes: nil)
                 documentsURL.appendPathComponent("\(urllastPathComponent)")
 
             }
