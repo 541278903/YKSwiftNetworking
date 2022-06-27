@@ -354,17 +354,10 @@ public class YKSwiftNetworking:NSObject
                 return Disposables.create()
             }
             
-            var progressBlock:((_ progress:Double)->Void)?
-            if let proBlock = request.progressBlock {
-                progressBlock = proBlock
-            }
-            
             
             request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
                 
-                if let block = progressBlock {
-                    block(progress)
-                }
+                request.progressBlock?(progress)
             }, successCallBack: { [weak self] response, request in
                 
                 if let weakSelf = self {
@@ -546,22 +539,10 @@ public class YKSwiftNetworking:NSObject
                     block(progress)
                 }
             }, successCallBack: { [weak self] response, request in
+                observer.onNext((request,response))
                 if let weakSelf = self {
-                    var error:Error? = nil
-                    if weakSelf.handleResponse != nil && !request.disableHandleResponse
-                    {
-                        error = weakSelf.handleResponse!(response,request)
-                        if error != nil {
-                            observer.onError(error!)
-                        }else{
-                            observer.onNext((request,response))
-                        }
-                    }else{
-                        observer.onNext((request,response))
-                    }
-                    weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                    weakSelf.saveTask(request: request, response: response, isException: false)
                 }else {
-                    observer.onNext((request,response))
                 }
                 observer.onCompleted()
             }, failureCallBack: { [weak self] request, isCache, responseObject, error in
@@ -587,7 +568,6 @@ public class YKSwiftNetworking:NSObject
     
     
 //    MARK:回调处理
-    
     private func handleConfig(with request: YKSwiftNetworkRequest) -> Bool {
         if request.name == nil || request.name!.count == 0 {
             request.name = UUID.init().uuidString
@@ -688,7 +668,7 @@ public class YKSwiftNetworking:NSObject
         
         /// 当前代理
         if let delegate = self.delegate {
-            if delegate.cacheRequest?(request: request, response: response, isException: isException) == nil {}
+            delegate.cacheRequest?(request: request, response: response, isException: isException)
         }
     }
     

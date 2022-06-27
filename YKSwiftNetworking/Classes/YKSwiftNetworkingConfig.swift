@@ -39,7 +39,11 @@ public class YKSwiftNetworkingConfig: NSObject
     
     
     /** 正在加载 */
-    public var loadingHandle:((_ loading:Bool) -> Void)?
+    private var loadingHandle:((_ loading:Bool) -> Void)?
+    
+    public func toSetLoadingHandle(loadingCallBack:@escaping (_ loading:Bool) -> Void) {
+        self.loadingHandle = loadingCallBack
+    }
     
     /** 根据需求设置缓存内容 */
     public var cacheRequest:((_ response:YKSwiftNetworkResponse,_ request:YKSwiftNetworkRequest, _ isException:Bool)->Void)?
