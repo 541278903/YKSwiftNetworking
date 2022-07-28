@@ -219,10 +219,10 @@ extension ViewController {
         
         // 最后成熟的请求方式
         
-        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData(Data.init(base64Encoded: "ceshiBase")).progress({ progress in
+        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData("ceshi".data(using: .utf8) as Any).progress({ progress in
             
         }).execute().mapWithRawData().subscribe(onNext: { responseData in
-            print("responseData:\(responseData)")
+            print("responseData:\(String(describing: responseData))")
         }, onError: { error in
             
         }, onCompleted: {
