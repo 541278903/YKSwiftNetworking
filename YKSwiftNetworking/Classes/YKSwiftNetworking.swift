@@ -206,6 +206,14 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
+    /// 本次请求的请求编码
+    /// - Parameter method: 请求方式
+    /// - Returns: networking
+    public func encoding(_ encoding:YKSwiftNetworkRequestEncoding) -> YKSwiftNetworking {
+        self.request.encoding = encoding
+        return self
+    }
+    
     /// 本次请求方式
     /// - Parameter method: 请求方式
     /// - Returns: networking
@@ -235,6 +243,16 @@ public class YKSwiftNetworking:NSObject
     public func disableDynamicHeader() -> YKSwiftNetworking {
         
         self.request.disableDynamicHeader = true
+        return self
+    }
+    
+    public func mockData(_ data:Any) -> YKSwiftNetworking {
+        self.request.mockData = data
+        return self
+    }
+    
+    public func httpBody(_ body:Data?) -> YKSwiftNetworking {
+        self.request.httpBody = body
         return self
     }
     
