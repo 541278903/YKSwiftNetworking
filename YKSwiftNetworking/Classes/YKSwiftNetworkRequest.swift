@@ -8,6 +8,11 @@
 import Foundation
 import Alamofire
 
+public enum YKSwiftNetworkRequestEncoding {
+    case URLEncoding
+    case JSONEncoding
+}
+
 public class YKSwiftNetworkRequest: NSObject, NSCopying
 {
     public func copy(with zone: NSZone? = nil) -> Any {
@@ -31,6 +36,9 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
         request.downloadTask = self.downloadTask
         request.formDataName = self.formDataName
         request.isShowLoading = self.isShowLoading
+        request.encoding = self.encoding
+        request.mockData = self.mockData
+        request.httpBody = self.httpBody
         return request
     }
     
@@ -69,6 +77,15 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
             return method
         }
     }
+    
+    // 编码方式
+    public var encoding:YKSwiftNetworkRequestEncoding = .URLEncoding
+    
+    // 本地数据
+    public var mockData:Any? = nil
+    
+    // httpbody 数据
+    public var httpBody: Data? = nil
     
     /** 禁止了动态参数 */  //MARK:rewrite
     public var disableDynamicParams:Bool = false
