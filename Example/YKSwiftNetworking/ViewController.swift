@@ -56,18 +56,27 @@ class ViewController: UIViewController {
             // response 为回调体
             // request 为请求头
             
+            
             // 例子
-//            if true {
-//                return NSError.init(domain: "com.yk.network", code: -1)
-//            }
+            //  if true {
+            //      return NSError.init(domain: "com.yk.network", code: -1)
+            //  }
             
             // 进阶  response中的rawData可以替换成需要的数据
             // 例子
-            response.rawData = "测试回调数据"
+            if let data = response.rawData as? Data {
+                response.rawData = String.init(data: data, encoding: String.Encoding.utf8)
+            }else {
+                response.rawData = "测试回调数据"
+            }
             // 修改完后，那么请求回调的数据里面就是此处设置的数据
             
             // 返回如果无错误则返回nil，如果回调内容不符合需求可组织Error 然后返回出去
-            return nil
+            if true {
+                return nil
+            }else {
+                return NSError.init(domain: "com.yk.network", code: -1)
+            }
         }
         
         return networking
@@ -167,12 +176,19 @@ extension ViewController {
         normalnetwork = normalnetwork.progress({ progress in
             //progress 进度的百分比
         })
+        // 本次请求中实现的协议，暂时仅支持 URLencoding和JSONEncoding
+        normalnetwork = normalnetwork.encoding(.URLEncoding)
+        // 本次请求往body中添加内容
+        normalnetwork = normalnetwork.httpBody(Data.init(base64Encoded: "{\"test\":\"1\"}"))
         // 本次请求忽略动态头文件
         normalnetwork = normalnetwork.disableDynamicHeader()
         // 本次请求忽略动态参数
         normalnetwork = normalnetwork.disableDynamicParams()
         // 本次请求默认不适用统一处理方式  统一处理方式指 当前networking定义的 handleResponse
         normalnetwork = normalnetwork.disableHandleResponse()
+        // 本次请求将不进行网络数据传输，直接返回设定的mock数据
+        normalnetwork = normalnetwork.mockData(["123","321"])
+        //
         
         //产生请求报文
         let single = normalnetwork.execute()
@@ -200,6 +216,17 @@ extension ViewController {
             
         }, onDisposed: nil).disposed(by: self.disposeBag)
         
+        
+        // 最后成熟的请求方式
+        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData(Data.init(base64Encoded: "ceshiBase")).progress({ progress in
+            
+        }).execute().mapWithRawData().subscribe(onNext: { responseData in
+            print("responseData:\(responseData)")
+        }, onError: { error in
+            
+        }, onCompleted: {
+            
+        }, onDisposed: nil).disposed(by: self.disposeBag)
     }
     
     func testUploadRequest() -> Void {
@@ -238,7 +265,7 @@ extension ViewController {
         
         // 开始执行上传回调
         singleResponse.subscribe(onNext: { responseData in
-            
+            print("上传回调:\(String(describing: responseData))")
         }, onError: { error in
             
         }, onCompleted: nil, onDisposed: nil).disposed(by: self.disposeBag)
@@ -246,7 +273,7 @@ extension ViewController {
     
     func testDownloadRequest() {
         
-        var normalnetwork = self.networking.method(.GET).url("https://www.baidu.com")
+        var normalnetwork = self.networking.method(.GET).url("https://s.cn.bing.net/th?id=OHR.AnniversaryJTNP_ZH-CN9974030692_1920x1080.jpg&rf=LaDigue_1920x1080.jpg")
         
         //添加参数
         normalnetwork = normalnetwork.params(["paramKey":"paramValue"])
@@ -262,7 +289,7 @@ extension ViewController {
         normalnetwork = normalnetwork.disableDynamicParams()
         // 本次请求默认不适用统一处理方式  统一处理方式指 当前networking定义的 handleResponse
         normalnetwork = normalnetwork.disableHandleResponse()
-        
+        // 本次下载请求的保存路径，仅需要针对获取路径的文件夹名即可，我将自动保存在cache沙盒中，并自动使用服务器下载的文件名
         normalnetwork = normalnetwork.downloadDestPath("download/jpeg")
         
         let single = normalnetwork.downloadDataSignal()
@@ -270,9 +297,9 @@ extension ViewController {
         let singleResponse = single.mapWithRawData()
         
         singleResponse.subscribe(onNext: { responseData in
-            
+            print("下载回调\(responseData)")
         }, onError: { error in
-            
+            print("下载错误:\(error.localizedDescription)")
         }, onCompleted: {
             
         }, onDisposed: nil).disposed(by: self.disposeBag)
