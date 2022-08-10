@@ -11,7 +11,7 @@ import SwiftyJSON
 
 internal class YKSwiftBaseNetworking: NSObject {
     
-    public static func request(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void) -> Request?
+    static func request(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void) -> Request?
     {
         YKSwiftBaseNetworking.configWith(request: request)
         
@@ -54,7 +54,7 @@ internal class YKSwiftBaseNetworking: NSObject {
         return task
     }
     
-    public static func upload(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void) -> Request?
+    static func upload(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void) -> Request?
     {
         YKSwiftBaseNetworking.configWith(request: request)
         
@@ -96,7 +96,7 @@ internal class YKSwiftBaseNetworking: NSObject {
         return task
     }
     
-    public static func download(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void) -> Request?
+    static func download(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void) -> Request?
     {
         YKSwiftBaseNetworking.configWith(request: request)
         
@@ -161,11 +161,16 @@ internal class YKSwiftBaseNetworking: NSObject {
         return task
     }
 
-    private static func configWith(request:YKSwiftNetworkRequest) -> Void {
+    
+}
+
+private extension YKSwiftBaseNetworking {
+    
+    static func configWith(request:YKSwiftNetworkRequest) -> Void {
         
     }
     
-    private static func resultToChang(data:Any?)->Any?
+    static func resultToChang(data:Any?)->Any?
     {
         if let jsonData = data as? Data,
            let json = try? JSON.init(data: jsonData)
@@ -194,4 +199,5 @@ internal class YKSwiftBaseNetworking: NSObject {
             return data
         }
     }
+    
 }
