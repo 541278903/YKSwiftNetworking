@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftNetworking'
-  s.version          = '1.1.1'
+  s.version          = '1.1.3'
   s.summary          = 'A short description of YKSwiftNetworking.'
 
 

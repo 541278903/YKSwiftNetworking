@@ -323,6 +323,24 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
+    /// 本次请求的请求编码
+    /// - Parameter method: 请求方式
+    /// - Returns: networking
+    public func encoding(_ encoding:YKSwiftNetworkRequestEncoding) -> YKSwiftNetworking {
+        self.request.encoding = encoding
+        return self
+    }
+    
+    public func mockData(_ data:Any) -> YKSwiftNetworking {
+        self.request.mockData = data
+        return self
+    }
+    
+    public func httpBody(_ body:Data?) -> YKSwiftNetworking {
+        self.request.httpBody = body
+        return self
+    }
+    
     //MARK: ====普通请求====
     
     /// 普通请求响应
@@ -630,85 +648,9 @@ public class YKSwiftNetworking:NSObject
         return observable
     }
     
-//    MARK:直接请求独立响应式
-    
-    /// 不使用响应普通正常请求
-    /// - Parameters:
-    ///   - method: 请求方式
-    ///   - url: 请求地址
-    ///   - params: 请求参数
-    ///   - header: 请求头文件
-    ///   - complate: 请求回调
-    /// - Returns: 空
-    public static func executeByMethod(method: YKNetworkRequestMethod,url: String,params: [String:Any]?,header: [String:String]?,complate: @escaping complateBlockType) -> Void {
-        _ = YKSwiftNetworking.init(nil, nil, nil, { response, request in
-            return nil
-        }).url(url).method(method).params(params).header(header).disableDynamicHeader().disableDynamicParams().disableHandleResponse().execute().mapWithRawData().subscribe(onNext: { result in
-            complate(result,nil)
-        }, onError: { error in
-            complate(nil,error)
-        }).disposed(by: DisposeBag())
-
-    }
     
     
-    /// 不适用响应默认GET请求
-    /// - Parameters:
-    ///   - url: 请求地址
-    ///   - params: 请求参数
-    ///   - header: 请求头文件
-    ///   - complate: 请求方式
-    /// - Returns: 空
-    public static func GET(url: String, params: [String:Any]?, header: [String:String]?, _  complate: @escaping complateBlockType) -> Void {
-        YKSwiftNetworking.executeByMethod(method: .GET, url: url, params: params, header: header, complate: complate)
-    }
     
-    /// 不适用响应默认POST请求
-    /// - Parameters:
-    ///   - url: 请求地址
-    ///   - params: 请求参数
-    ///   - header: 请求头文件
-    ///   - complate: 请求方式
-    /// - Returns: 空
-    public static func POST(url: String, params: [String:Any]?, header: [String:String]?,  _ complate: @escaping complateBlockType) -> Void {
-        YKSwiftNetworking.executeByMethod(method: .POST, url: url, params: params, header: header, complate: complate)
-    }
-    
-    
-    /// 不适用响应默认上传
-    /// - Parameters:
-    ///   - url: 上传地址
-    ///   - data: 上传数据
-    ///   - filename: 上传文件名
-    ///   - mimeType: 上传文件类型
-    ///   - params: 上传参数
-    ///   - header: 上传头文件
-    ///   - progress: 上传进度
-    ///   - complate: 上传回调
-    /// - Returns: 空
-    public static func UPLOAD(url: String,data: Data, filename: String, mimeType: String, formDataName: String,params: [String:Any]?,header: [String:String]?,progress: @escaping progressBlockType, complate: @escaping complateBlockType) -> Void {
-        _ = YKSwiftNetworking.init().url(url).method(.POST).params([:]).uploadData(data: data, filename: filename, mimeType: mimeType, formDataName: formDataName).progress(progress).uploadDataSignal().mapWithRawData().subscribe(onNext: { result in
-            complate(result,nil);
-        }, onError: { error in
-            complate(nil,error)
-        }).disposed(by: DisposeBag())
-    }
-    
-    
-    /// 不适用响应默认下载
-    /// - Parameters:
-    ///   - url: 下载地址
-    ///   - destPath: 下载缓存地址
-    ///   - progress: 下载进度
-    ///   - complate: 下载回调
-    /// - Returns: 空
-    public static func DOWNLOAD(url: String,destPath: String,progress: @escaping progressBlockType, complate: @escaping complateBlockType) -> Void {
-        _ = YKSwiftNetworking.init().url(url).method(.POST).downloadDestPath(destPath).progress(progress).disableDynamicParams().disableDynamicHeader().disableHandleResponse().downloadDataSignal().mapWithRawData().subscribe(onNext: { result in
-            complate(result,nil)
-        }, onError: { error in
-            complate(nil,error)
-        }).disposed(by: DisposeBag())
-    }
     
     
     

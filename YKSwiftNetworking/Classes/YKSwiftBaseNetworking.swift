@@ -11,11 +11,28 @@ import SwiftyJSON
 
 internal class YKSwiftBaseNetworking: NSObject {
     
-    public static func request(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void)->Request
+    static func request(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void) -> Request?
     {
         YKSwiftBaseNetworking.configWith(request: request)
         
-        let task = Alamofire.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header).response { [weak request] response in
+        if request.mockData != nil {
+            let ykresponse = YKSwiftNetworkResponse.init()
+            ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: request.mockData!)
+            ykresponse.isCache = false
+            ykresponse.code = 200
+            successCallBack(ykresponse,request)
+            return nil
+        }
+        
+        var encoding:ParameterEncoding = URLEncoding.default
+        if request.encoding == .JSONEncoding {
+            encoding = JSONEncoding.default
+        }
+        let af = Alamofire.request(request.urlStr, method: request.methodStr, parameters: request.params, encoding: encoding, headers: request.header).downloadProgress { progress in
+            progressCallBack(progress.fractionCompleted)
+        }
+        
+        let task = af.response { [weak request] response in
             
             guard let req = request else { return }
             if response.error != nil {
@@ -40,9 +57,18 @@ internal class YKSwiftBaseNetworking: NSObject {
         return task
     }
     
-    public static func upload(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void)
+    static func upload(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void)
     {
         YKSwiftBaseNetworking.configWith(request: request)
+        
+        if request.mockData != nil {
+            let ykresponse = YKSwiftNetworkResponse.init()
+            ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: request.mockData!)
+            ykresponse.isCache = false
+            ykresponse.code = 200
+            successCallBack(ykresponse,request)
+            return
+        }
         
         Alamofire.upload(multipartFormData: { [weak request] multipartFormData in
             guard let req = request else { return }
@@ -52,39 +78,47 @@ internal class YKSwiftBaseNetworking: NSObject {
                 multipartFormData.append(data, withName: key)
             }
             multipartFormData.append(req.uploadFileData!, withName: req.formDataName!, fileName: req.uploadName!, mimeType: req.uploadMimeType!)
-        }, to: request.urlStr, method: request.methodStr, headers: request.header) { [weak request] encodingResult in
+        }, to: request.urlStr, method: request.methodStr, headers: request.header) { encodingResult in
             switch encodingResult{
                 case .success(request: let upladtRequest, streamingFromDisk: _, streamFileURL: _):do {
-                    guard let req = request else { return }
-                    req.task = upladtRequest
+                    
                     upladtRequest.uploadProgress { progress in
                         progressCallBack(progress.fractionCompleted)
                     }
+                    
                     upladtRequest.response { response in
                         if response.error != nil {
-                            failureCallBack(req,false,nil,response.error)
+                            failureCallBack(request,false,nil,response.error)
                         } else {
                             let ykresponse = YKSwiftNetworkResponse.init()
                             ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: response.data)
                             ykresponse.isCache = false
                             ykresponse.code = response.response?.statusCode ?? 0
-                            successCallBack(ykresponse,req)
+                            successCallBack(ykresponse,request)
                         }
                     }
                     break
                 }
                 case .failure(let error):do {
-                    guard let req = request else { return }
-                    failureCallBack(req,false,nil,error)
+                    failureCallBack(request,false,nil,error)
                     break
                 }
             }
         }
     }
     
-    public static func download(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void)->Request
+    static func download(request:YKSwiftNetworkRequest, progressCallBack:@escaping (_ progress:Double )->Void, successCallBack:@escaping (_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void, failureCallBack:@escaping (_ request:YKSwiftNetworkRequest, _ isCache:Bool, _ responseObject:Any?, _ error:Error?)->Void) -> Request?
     {
         YKSwiftBaseNetworking.configWith(request: request)
+        
+        if request.mockData != nil {
+            let ykresponse = YKSwiftNetworkResponse.init()
+            ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: request.mockData!)
+            ykresponse.isCache = false
+            ykresponse.code = 200
+            successCallBack(ykresponse,request)
+            return nil
+        }
             
         let destination: DownloadRequest.DownloadFileDestination = { [weak request] url, options in
             var documentsURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
@@ -113,34 +147,44 @@ internal class YKSwiftBaseNetworking: NSObject {
                 }
             }
             
-            return (documentsURL, [.createIntermediateDirectories])
+            return (documentsURL, [.removePreviousFile,.createIntermediateDirectories])
        }
         
-        let task = Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: URLEncoding.default, headers: request.header, to: destination).downloadProgress { progress in
+        var encoding:ParameterEncoding = URLEncoding.default
+        if request.encoding == .JSONEncoding {
+            encoding = JSONEncoding.default
+        }
+        
+        let af = Alamofire.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: encoding, headers: request.header, to: destination).downloadProgress { progress in
             progressCallBack(progress.fractionCompleted)
-        }.response { [weak request] response in
+        }
+        
+        let task = af.response { response in
             
-            if let req = request {
-                if response.error != nil {
-                    failureCallBack( req, false, nil, response.error)
-                } else {
-                    let ykresponse = YKSwiftNetworkResponse.init()
-                    ykresponse.rawData = ["url":response.destinationURL!.relativeString]
-                    ykresponse.isCache = false
-                    ykresponse.code = response.response?.statusCode ?? 0
-                    successCallBack(ykresponse, req)
-                }
+            if response.error != nil {
+                failureCallBack(request, false, nil, response.error)
+            } else {
+                let ykresponse = YKSwiftNetworkResponse.init()
+                ykresponse.rawData = ["url":response.destinationURL!.relativeString]
+                ykresponse.isCache = false
+                ykresponse.code = response.response?.statusCode ?? 0
+                successCallBack(ykresponse, request)
             }
         }
         task.resume()
         return task
     }
 
-    private static func configWith(request:YKSwiftNetworkRequest) -> Void {
+    
+}
+
+private extension YKSwiftBaseNetworking {
+    
+    static func configWith(request:YKSwiftNetworkRequest) -> Void {
         
     }
     
-    private static func resultToChang(data:Any?)->Any?
+    static func resultToChang(data:Any?)->Any?
     {
         if let jsonData = data as? Data,
            let json = try? JSON.init(data: jsonData)
