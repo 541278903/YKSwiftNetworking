@@ -46,7 +46,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                 break
                 
             case .failure(let error):
-                failureCallBack(request,false,nil,error.underlyingError)
+                failureCallBack(request,false,nil,error.getError())
                 break
             }
         }
@@ -89,7 +89,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                 successCallBack(ykresponse,request)
                 break
             case .failure(let error):
-                failureCallBack(request,false,nil,error.underlyingError)
+                failureCallBack(request,false,nil,error.getError())
                 break
             }
         }
@@ -157,7 +157,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                 successCallBack(ykresponse,request)
                 break
             case .failure(let error):
-                failureCallBack(request,false,nil,error.underlyingError)
+                failureCallBack(request,false,nil,error.getError())
                 break
             }
         }
@@ -204,4 +204,16 @@ private extension YKSwiftBaseNetworking {
         }
     }
     
+}
+
+fileprivate extension AFError {
+    
+    func getError() -> Error? {
+        
+        return NSError.init(domain: "com.yk.swift.networking", code: self.responseCode ?? -1, userInfo: [
+            NSLocalizedDescriptionKey:self.errorDescription ?? "error",
+            NSLocalizedFailureReasonErrorKey:self.errorDescription ?? "error"
+        ])
+        
+    }
 }

@@ -165,7 +165,7 @@ extension ViewController {
     
     func testNormalRequest() {
         
-        var normalnetwork = self.networking.method(.GET).url("https://www.baidu.com")
+        var normalnetwork = self.networking.method(.GET).url("https://ios.tipsoon.com/?a=getNewArticles&c=api4&code=44B1939F-4E05-4F68-9314-55DABA630FFC&md5=8997dc37faee9a1b086f86813e333daa&num=1&timestamp=1662454870782")
         
         //添加参数
         normalnetwork = normalnetwork.params(["paramKey":"paramValue"])
@@ -189,45 +189,17 @@ extension ViewController {
         normalnetwork = normalnetwork.mockData(["123","321"])
         //
         
-        //产生请求报文
-        let single = normalnetwork.execute()
+        normalnetwork.exectue { request, response, error in
+            if let err = error {
+                print("error:\(err.localizedDescription)")
+            }else {
+                print("\(String(describing: response.rawData))")
+            }
+        }
         
-        //申请请求
-        single.subscribe(onNext: { (request: YKSwiftNetworkRequest, response: YKSwiftNetworkResponse) in
-            //请求成功将返回元组，元组包含 request,response
-            //request:此次请求的请求头
-            //response:此次请求返回的回调信息
-            
-        }, onError: { error in
-            
-        }, onCompleted: {
-            
-        }, onDisposed: nil).disposed(by: self.disposeBag)
-        
-        //若想单纯返回请求数据 则添加 mapWithRawData
-        single.mapWithRawData().subscribe(onNext: { responseData in
-            //请求成功将返回可选值数据
-            //responseData:此次请求给到的回调内容
-            
-        }, onError: { erro in
-            
-        }, onCompleted: {
-            
-        }, onDisposed: nil).disposed(by: self.disposeBag)
-        
-        
-        
-        // 最后成熟的请求方式
-        
-        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData("ceshi".data(using: .utf8) as Any).progress({ progress in
-            
-        }).execute().mapWithRawData().subscribe(onNext: { responseData in
-            print("responseData:\(String(describing: responseData))")
-        }, onError: { error in
-            
-        }, onCompleted: {
-            
-        }, onDisposed: nil).disposed(by: self.disposeBag)
+        normalnetwork.exectue { request, response, error in
+            print("response:\(response.rawData), error:\(error?.localizedDescription)")
+        }
     }
     
     func testUploadRequest() -> Void {
@@ -299,6 +271,73 @@ extension ViewController {
         
         singleResponse.subscribe(onNext: { responseData in
             
+        }, onError: { error in
+            
+        }, onCompleted: {
+            
+        }, onDisposed: nil).disposed(by: self.disposeBag)
+    }
+    
+    func testRxNormalExecute() {
+        
+        var normalnetwork = self.networking.method(.GET).url("https://www.baidu.com")
+        
+        //添加参数
+        normalnetwork = normalnetwork.params(["paramKey":"paramValue"])
+        //添加请求头
+        normalnetwork = normalnetwork.header(["headerKey":"headerValue"])
+        //添加请求进度
+        normalnetwork = normalnetwork.progress({ progress in
+            //progress 进度的百分比
+        })
+        // 本次请求中实现的协议，暂时仅支持 URLencoding和JSONEncoding
+        normalnetwork = normalnetwork.encoding(.URLEncoding)
+        // 本次请求往body中添加内容
+        normalnetwork = normalnetwork.httpBody(Data.init(base64Encoded: "{\"test\":\"1\"}"))
+        // 本次请求忽略动态头文件
+        normalnetwork = normalnetwork.disableDynamicHeader()
+        // 本次请求忽略动态参数
+        normalnetwork = normalnetwork.disableDynamicParams()
+        // 本次请求默认不适用统一处理方式  统一处理方式指 当前networking定义的 handleResponse
+        normalnetwork = normalnetwork.disableHandleResponse()
+        // 本次请求将不进行网络数据传输，直接返回设定的mock数据
+        normalnetwork = normalnetwork.mockData(["123","321"])
+        //
+        
+        //产生请求报文
+        let single = normalnetwork.rxexecute()
+        
+        //申请请求
+        single.subscribe(onNext: { (request: YKSwiftNetworkRequest, response: YKSwiftNetworkResponse) in
+            //请求成功将返回元组，元组包含 request,response
+            //request:此次请求的请求头
+            //response:此次请求返回的回调信息
+            
+        }, onError: { error in
+            
+        }, onCompleted: {
+            
+        }, onDisposed: nil).disposed(by: self.disposeBag)
+        
+        //若想单纯返回请求数据 则添加 mapWithRawData
+        single.mapWithRawData().subscribe(onNext: { responseData in
+            //请求成功将返回可选值数据
+            //responseData:此次请求给到的回调内容
+            
+        }, onError: { erro in
+            
+        }, onCompleted: {
+            
+        }, onDisposed: nil).disposed(by: self.disposeBag)
+        
+        
+        
+        // 最后成熟的请求方式
+        
+        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData("ceshi".data(using: .utf8) as Any).progress({ progress in
+            
+        }).rxexecute().mapWithRawData().subscribe(onNext: { responseData in
+            print("responseData:\(String(describing: responseData))")
         }, onError: { error in
             
         }, onCompleted: {
