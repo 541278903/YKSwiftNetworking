@@ -191,7 +191,7 @@ extension ViewController {
         //
         
         //产生请求报文
-        let single = normalnetwork.execute()
+        let single = normalnetwork.rxexecute()
         
         //申请请求
         single.subscribe(onNext: { (request: YKSwiftNetworkRequest, response: YKSwiftNetworkResponse) in
@@ -220,7 +220,7 @@ extension ViewController {
         // 最后成熟的请求方式
         self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData(Data.init(base64Encoded: "ceshiBase")).progress({ progress in
             
-        }).execute().mapWithRawData().subscribe(onNext: { responseData in
+        }).rxexecute().mapWithRawData().subscribe(onNext: { responseData in
             print("responseData:\(responseData)")
         }, onError: { error in
             

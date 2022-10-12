@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftNetworking'
-  s.version          = '2.0.3'
+  s.version          = '2.1.0'
   s.summary          = 'A short description of YKSwiftNetworking.'
 
 
@@ -23,10 +23,20 @@ Pod::Spec.new do |s|
 
   s.ios.deployment_target = '10.0'
   s.swift_version = '5.0'
-  s.dependency  'Alamofire', "~> 5.0"
-  s.dependency  'RxSwift', "~> 5.0"
-  s.dependency  'SwiftyJSON'
 
-  s.source_files = 'YKSwiftNetworking/Classes/**/*'
+  s.default_subspec = 'Core'
+  
+  
+  s.subspec "Core" do |ss|
+    ss.dependency  'Alamofire', "~> 5.0"
+    ss.dependency  'SwiftyJSON'
+    ss.source_files = 'YKSwiftNetworking/Classes/Core/**/*'
+  end
+  
+  s.subspec 'RxSwift' do |ss|
+    ss.dependency  'YKSwiftNetworking/Core'
+    ss.dependency  'RxSwift', "~> 5.0"
+    ss.source_files = 'YKSwiftNetworking/Classes/RxSwift/**/*'
+  end
   
 end
