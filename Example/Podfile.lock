@@ -2,13 +2,18 @@ PODS:
   - Alamofire (5.6.1)
   - RxSwift (6.5.0)
   - SwiftyJSON (5.0.1)
-  - YKSwiftNetworking (3.0.3):
+  - YKSwiftNetworking (3.1.0):
+    - YKSwiftNetworking/Core (= 3.1.0)
+  - YKSwiftNetworking/Core (3.1.0):
     - Alamofire (~> 5.0)
-    - RxSwift (~> 6.0)
     - SwiftyJSON
+  - YKSwiftNetworking/RxSwift (3.1.0):
+    - RxSwift (~> 6.0)
+    - YKSwiftNetworking/Core
 
 DEPENDENCIES:
   - YKSwiftNetworking (from `../`)
+  - YKSwiftNetworking/RxSwift (from `../`)
 
 SPEC REPOS:
   trunk:
@@ -24,8 +29,8 @@ SPEC CHECKSUMS:
   Alamofire: 87bd8c952f9a4454320fce00d9cc3de57bcadaf5
   RxSwift: 5710a9e6b17f3c3d6e40d6e559b9fa1e813b2ef8
   SwiftyJSON: 2f33a42c6fbc52764d96f13368585094bfd8aa5e
-  YKSwiftNetworking: db3d0d9c5d8572f5bedfaa7f9c9679a12d9b5e9a
+  YKSwiftNetworking: f9bdfdedce935ae80c38824a03a0dab248dc348f
 
-PODFILE CHECKSUM: 127b95ad4c882002eb87257bceb516e56edd95dc
+PODFILE CHECKSUM: ddfd49520b1cdcfd0fc47072cc3d5d807c84c4c7
 
 COCOAPODS: 1.11.3

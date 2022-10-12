@@ -46,7 +46,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                 break
                 
             case .failure(let error):
-                failureCallBack(request,false,nil,error.underlyingError)
+                failureCallBack(request,false,nil,error.getError())
                 break
             }
         }
@@ -76,7 +76,8 @@ internal class YKSwiftBaseNetworking: NSObject {
                 multipartFormData.append(data, withName: key)
             }
             
-        }, to: request.urlStr, method: request.methodStr, headers: HTTPHeaders.init(request.header)).uploadProgress { progress in
+        }, to: request.urlStr, method: request.methodStr, headers: HTTPHeaders.init(request.header), requestModifier: { $0.httpBody = request.httpBody
+        }).uploadProgress { progress in
             progressCallBack(progress.fractionCompleted)
         }.response { response in
             switch response.result {
@@ -88,7 +89,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                 successCallBack(ykresponse,request)
                 break
             case .failure(let error):
-                failureCallBack(request,false,nil,error.underlyingError)
+                failureCallBack(request,false,nil,error.getError())
                 break
             }
         }
@@ -141,7 +142,10 @@ internal class YKSwiftBaseNetworking: NSObject {
         if request.encoding == .JSONEncoding {
             encoding = JSONEncoding.default
         }
-        let task = AF.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: encoding, headers: HTTPHeaders.init(request.header), interceptor: nil, requestModifier: nil, to: destination).downloadProgress(closure: { progress in
+        let task = AF.download(request.urlStr, method: request.methodStr, parameters: request.params, encoding: encoding, headers: HTTPHeaders.init(request.header), interceptor: nil, requestModifier: {
+            $0.timeoutInterval = YKSwiftNetworkingConfig.share.timeoutInterval
+            $0.httpBody = request.httpBody
+        }, to: destination).downloadProgress(closure: { progress in
             progressCallBack(progress.fractionCompleted)
         }).response { response in
             switch response.result {
@@ -153,7 +157,7 @@ internal class YKSwiftBaseNetworking: NSObject {
                 successCallBack(ykresponse,request)
                 break
             case .failure(let error):
-                failureCallBack(request,false,nil,error.underlyingError)
+                failureCallBack(request,false,nil,error.getError())
                 break
             }
         }
@@ -200,4 +204,16 @@ private extension YKSwiftBaseNetworking {
         }
     }
     
+}
+
+fileprivate extension AFError {
+    
+    func getError() -> Error? {
+        
+        return NSError.init(domain: "com.yk.swift.networking", code: self.responseCode ?? -1, userInfo: [
+            NSLocalizedDescriptionKey:self.errorDescription ?? "error",
+            NSLocalizedFailureReasonErrorKey:self.errorDescription ?? "error"
+        ])
+        
+    }
 }
