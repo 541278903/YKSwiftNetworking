@@ -573,7 +573,7 @@ public extension YKSwiftNetworking
                 if request.isShowLoading,
                    let weakSelf = self
                 {
-                    error = weakSelf.handleResponse!(response,request)
+                    weakSelf.loadingHandle?(false)
                 }
                 
                 let ykresponse = YKSwiftNetworkResponse()
