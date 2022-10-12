@@ -593,4 +593,52 @@ public extension YKSwiftNetworking
         self._request = nil
     }
     
+    func executeDownload(callBack:@escaping (_ request:YKSwiftNetworkRequest, _ response:YKSwiftNetworkResponse, _ error:Error?)->Void) {
+        
+        guard let request = self.request.copy() as? YKSwiftNetworkRequest else {
+            callBack(YKSwiftNetworkRequest(), YKSwiftNetworkResponse(), NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                NSLocalizedDescriptionKey:"request初始化错误",
+                NSLocalizedFailureReasonErrorKey:"request初始化错误",
+                NSLocalizedRecoverySuggestionErrorKey:"request初始化错误",
+            ]))
+            return }
+        
+        let canContinue = self.handleConfig(with: request)
+        if !canContinue {
+            self._request = nil
+            callBack(request,YKSwiftNetworkResponse(),nil)
+            return
+        }
+        
+        if request.isShowLoading {
+            self.loadingHandle?(true)
+        }
+        
+        request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
+            request.progressBlock?(progress)
+        }, successCallBack: { [weak self] response, request in
+            if let weakSelf = self {
+                if request.isShowLoading {
+                    weakSelf.loadingHandle?(false)
+                }
+                weakSelf.saveTask(request: request, response: response, isException: false)
+            }
+            callBack(request,response,nil)
+        }, failureCallBack: { [weak self] request, isCache, responseObject, error in
+            if request.isShowLoading
+            {
+                self?.loadingHandle?(false)
+            }
+
+            let ykresponse = YKSwiftNetworkResponse.init()
+            ykresponse.rawData = responseObject
+            if let weakSelf = self {
+                weakSelf.saveTask(request: request, response: ykresponse, isException: true)
+            }
+            callBack(request,ykresponse,error)
+        })
+        self._request = nil
+        
+    }
+    
 }

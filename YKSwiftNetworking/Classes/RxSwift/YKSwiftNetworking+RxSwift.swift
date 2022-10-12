@@ -92,57 +92,14 @@ public extension YKSwiftNetworking {
                 observer.onCompleted()
                 return Disposables.create() }
             
-            guard let request = weakSelf.request.copy() as? YKSwiftNetworkRequest else { observer.onError(NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                NSLocalizedDescriptionKey:"request初始化错误",
-                NSLocalizedFailureReasonErrorKey:"request初始化错误",
-                NSLocalizedRecoverySuggestionErrorKey:"request初始化错误",
-            ]))
-                observer.onCompleted()
-                return Disposables.create() }
-            
-            let canContinue = weakSelf.handleConfig(with: request)
-            if !canContinue {
-                weakSelf._request = nil
-                observer.onNext((request,YKSwiftNetworkResponse()))
-                observer.onCompleted()
-                return Disposables.create()
-            }
-            
-            if request.isShowLoading {
-                weakSelf.loadingHandle?(true)
-            }
-            
-            request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
-                request.progressBlock?(progress)
-            }, successCallBack: { [weak self] response, request in
-                observer.onNext((request,response))
-                if let weakSelf = self {
-                    if request.isShowLoading {
-                        weakSelf.loadingHandle?(false)
-                    }
-                    weakSelf.saveTask(request: request, response: response, isException: false)
-                }
-                observer.onCompleted()
-            }, failureCallBack: { [weak self] request, isCache, responseObject, error in
-                
-                if request.isShowLoading,
-                   let weakSelf = self
-                {
-                    weakSelf.loadingHandle?(false)
-                }
-                
+            weakSelf.executeDownload(callBack: { request, response, error in
                 if let err = error {
                     observer.onError(err)
                 }else {
-                    let ykresponse = YKSwiftNetworkResponse.init()
-                    observer.onNext((request,ykresponse))
-                    if let weakSelf = self {
-                        weakSelf.saveTask(request: request, response: ykresponse, isException: true)
-                    }
+                    observer.onNext((request,response))
                 }
                 observer.onCompleted()
             })
-            weakSelf._request = nil
             return Disposables.create()
         }
         return observable
