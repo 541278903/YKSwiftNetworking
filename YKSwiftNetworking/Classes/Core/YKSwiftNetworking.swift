@@ -464,13 +464,14 @@ public extension YKSwiftNetworking
                 NSLocalizedFailureReasonErrorKey:"初始化发生错误",
                 NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
             ]))
+            self._request = nil
             return
         }
         
         let canContinue = self.handleConfig(with: request)
         if !canContinue {
-            self._request = nil
             callBack(request, YKSwiftNetworkResponse(), nil)
+            self._request = nil
             return
         }
         
@@ -601,12 +602,13 @@ public extension YKSwiftNetworking
                 NSLocalizedFailureReasonErrorKey:"request初始化错误",
                 NSLocalizedRecoverySuggestionErrorKey:"request初始化错误",
             ]))
+            self._request = nil
             return }
         
         let canContinue = self.handleConfig(with: request)
         if !canContinue {
-            self._request = nil
             callBack(request,YKSwiftNetworkResponse(),nil)
+            self._request = nil
             return
         }
         
