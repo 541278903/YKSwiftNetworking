@@ -120,6 +120,12 @@ private extension ViewController {
             weakself.testDownloadRequest()
         }))
         
+        
+        self.dataSource.append(TableModel.model("测试Rx普通请求", callBack: { [weak self] in
+            guard let weakself = self else { return }
+            weakself.testRxNormalExecute()
+        }))
+        
     }
 }
 
@@ -231,7 +237,7 @@ extension ViewController {
         normalnetwork = normalnetwork.uploadData(data: data, filename: "text.jpeg", mimeType: "image/jpeg", formDataName: "file")
         
         // 本次请求为上传请求
-        let single = normalnetwork.uploadDataSignal()
+        let single = normalnetwork.rx.uploadRequest()
         
         // 本次请求使用统一处理方式
         let singleResponse = single.mapWithRawData()
@@ -265,7 +271,7 @@ extension ViewController {
         // 本次下载请求的保存路径，仅需要针对获取路径的文件夹名即可，我将自动保存在cache沙盒中，并自动使用服务器下载的文件名
         normalnetwork = normalnetwork.downloadDestPath("download/jpeg")
         
-        let single = normalnetwork.downloadDataSignal()
+        let single = normalnetwork.rx.downloadRequest()
         
         let singleResponse = single.mapWithRawData()
         
@@ -305,7 +311,7 @@ extension ViewController {
         //
         
         //产生请求报文
-        let single = normalnetwork.rxexecute()
+        let single = normalnetwork.rx.request()
         
         //申请请求
         single.subscribe(onNext: { (request: YKSwiftNetworkRequest, response: YKSwiftNetworkResponse) in
@@ -334,9 +340,9 @@ extension ViewController {
         
         // 最后成熟的请求方式
         
-        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData("ceshi".data(using: .utf8) as Any).progress({ progress in
+        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).progress({ progress in
             
-        }).rxexecute().mapWithRawData().subscribe(onNext: { responseData in
+        }).rx.request().mapWithRawData().subscribe(onNext: { responseData in
             print("responseData:\(String(describing: responseData))")
         }, onError: { error in
             
