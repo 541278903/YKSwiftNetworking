@@ -28,7 +28,6 @@ Pod::Spec.new do |s|
     
   s.subspec "Core" do |ss|
     ss.dependency  'Alamofire', "~> 5.0"
-    ss.dependency  'SwiftyJSON'
     ss.source_files = 'YKSwiftNetworking/Classes/Core/**/*'
   end
   

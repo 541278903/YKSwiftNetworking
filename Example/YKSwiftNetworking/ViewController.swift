@@ -258,7 +258,7 @@ extension ViewController {
     
     func testDownloadRequest() {
         
-        var normalnetwork = self.networking.method(.GET).url("http://106.55.12.108:30081/images/1667371419741.jpeg")
+        var normalnetwork = self.networking.method(.GET).url("")
         
         //添加参数
         normalnetwork = normalnetwork.params(["paramKey":"paramValue"])
@@ -323,16 +323,9 @@ extension ViewController {
         let newSingle = single.mapWithRawData()
         
         //申请请求
-        newSingle.subscribe(onNext: { (request: YKSwiftNetworkRequest, response: YKSwiftNetworkResponse) in
-            //请求成功将返回元组，元组包含 request,response
-            //request:此次请求的请求头
-            //response:此次请求返回的回调信息
+        newSingle.subscribe(onNext: { data in
             
-        }, onError: { error in
-            
-        }, onCompleted: {
-            
-        }, onDisposed: nil).disposed(by: self.disposeBag)
+        }).dispose()
         
         
         
