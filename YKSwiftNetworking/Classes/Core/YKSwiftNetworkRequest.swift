@@ -13,6 +13,12 @@ public enum YKSwiftNetworkRequestEncoding {
     case JSONEncoding
 }
 
+internal enum YKSwiftNetworkRequestExecuteMode {
+    case Normal
+    case Upload
+    case Download
+}
+
 public class YKSwiftNetworkRequest: NSObject, NSCopying
 {
     public func copy(with zone: NSZone? = nil) -> Any {
@@ -39,6 +45,8 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
         request.encoding = self.encoding
         request.mockData = self.mockData
         request.httpBody = self.httpBody
+        request.executeModel = self.executeModel
+        request.handleResponse = self.handleResponse
         return request
     }
     
@@ -128,7 +136,15 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
     
     public var isShowLoading:Bool = false
     
+    internal var executeModel:YKSwiftNetworkRequestExecuteMode = .Normal
+    
+    internal var handleResponse:((_ response: YKSwiftNetworkResponse, _ request: YKSwiftNetworkRequest) -> Error?)? = nil
+    
     public override init() {
         super.init()
+        self.disableDynamicHeader = false
+        self.disableDynamicParams = false
+        self.disableHandleResponse = false
+        self.executeModel = .Normal
     }
 }

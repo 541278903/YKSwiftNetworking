@@ -13,6 +13,7 @@
 		607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDC1AFB9204008FA782 /* Images.xcassets */; };
 		607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDE1AFB9204008FA782 /* LaunchScreen.xib */; };
 		607FACEC1AFB9204008FA782 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACEB1AFB9204008FA782 /* Tests.swift */; };
+		997E6D1F291247340079049F /* test.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 997E6D1E291247340079049F /* test.jpg */; };
 		99CA751988F9A955D38F1558 /* Pods_YKSwiftNetworking_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DE6F4DAC889F901EBEC1F83 /* Pods_YKSwiftNetworking_Tests.framework */; };
 		EC53EF40739005A3C6939C94 /* Pods_YKSwiftNetworking_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE3CDCD30A48333DC8E749B7 /* Pods_YKSwiftNetworking_Example.framework */; };
 /* End PBXBuildFile section */
@@ -42,6 +43,7 @@
 		607FACEB1AFB9204008FA782 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
 		775296933ACE0C0A58BFF596 /* Pods-YKSwiftNetworking_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YKSwiftNetworking_Tests.debug.xcconfig"; path = "Target Support Files/Pods-YKSwiftNetworking_Tests/Pods-YKSwiftNetworking_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		841913918DD745811F75463D /* Pods-YKSwiftNetworking_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YKSwiftNetworking_Tests.release.xcconfig"; path = "Target Support Files/Pods-YKSwiftNetworking_Tests/Pods-YKSwiftNetworking_Tests.release.xcconfig"; sourceTree = "<group>"; };
+		997E6D1E291247340079049F /* test.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = test.jpg; sourceTree = "<group>"; };
 		B73779446FF0C6D7B059F680 /* Pods-YKSwiftNetworking_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YKSwiftNetworking_Example.release.xcconfig"; path = "Target Support Files/Pods-YKSwiftNetworking_Example/Pods-YKSwiftNetworking_Example.release.xcconfig"; sourceTree = "<group>"; };
 		C54FEEAB1659D09868ADB866 /* Pods-YKSwiftNetworking_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-YKSwiftNetworking_Example.debug.xcconfig"; path = "Target Support Files/Pods-YKSwiftNetworking_Example/Pods-YKSwiftNetworking_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		CA2BA2C8DC68BDB2503559D6 /* YKSwiftNetworking.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = YKSwiftNetworking.podspec; path = ../YKSwiftNetworking.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
@@ -113,6 +115,7 @@
 		607FACD21AFB9204008FA782 /* Example for YKSwiftNetworking */ = {
 			isa = PBXGroup;
 			children = (
+				997E6D1E291247340079049F /* test.jpg */,
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
@@ -249,6 +252,7 @@
 				607FACDB1AFB9204008FA782 /* Main.storyboard in Resources */,
 				607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */,
 				607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */,
+				997E6D1F291247340079049F /* test.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -425,7 +429,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -471,7 +475,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -485,7 +489,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = YKSwiftNetworking/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.$(PRODUCT_NAME:rfc1034identifier)";
@@ -501,7 +505,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = YKSwiftNetworking/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.$(PRODUCT_NAME:rfc1034identifier)";
