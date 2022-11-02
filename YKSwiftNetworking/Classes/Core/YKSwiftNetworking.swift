@@ -68,6 +68,7 @@ public class YKSwiftNetworking:NSObject
                         _request!.params.updateValue(value, forKey: key)
                     }
                 }
+                _request!.handleResponse = self.handleResponse
                 
             }
             return _request!
@@ -270,6 +271,7 @@ public class YKSwiftNetworking:NSObject
     public func downloadDestPath(_ destPath: String) -> YKSwiftNetworking {
         
         self.request.destPath = destPath
+        self.request.executeModel = .Download
         return self
     }
     
@@ -285,6 +287,7 @@ public class YKSwiftNetworking:NSObject
         self.request.uploadName = filename
         self.request.uploadMimeType = mimeType
         self.request.formDataName = formDataName
+        self.request.executeModel = .Upload
         return self
     }
     
@@ -339,11 +342,194 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
+    deinit {
+        #if DEBUG
+            print("deinit:YKSwiftNetworking")
+        #endif
+    }
+}
+
+public extension YKSwiftNetworking
+{
+    func exectue(callBack:@escaping (_ request:YKSwiftNetworkRequest, _ response:YKSwiftNetworkResponse, _ error:Error?)->Void) {
+        
+        guard let request = self.request.copy() as? YKSwiftNetworkRequest else {
+            callBack(YKSwiftNetworkRequest(), YKSwiftNetworkResponse(), NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                NSLocalizedDescriptionKey:"初始化发生错误",
+                NSLocalizedFailureReasonErrorKey:"初始化发生错误",
+                NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
+            ]))
+            self._request = nil
+            return
+        }
+        
+        let canContinue = self.handleConfig(with: request)
+        if !canContinue {
+            callBack(request, YKSwiftNetworkResponse(), NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
+                NSLocalizedDescriptionKey:"请求已中断",
+                NSLocalizedFailureReasonErrorKey:"请求已中断",
+                NSLocalizedRecoverySuggestionErrorKey:"请求已中断",
+            ]))
+            self._request = nil
+            return
+        }
+        
+        if request.isShowLoading {
+            self.loadingHandle?(true)
+        }
+        
+        switch request.executeModel {
+        case .Normal:
+            request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
+                request.progressBlock?(progress)
+            }, successCallBack: { [weak self] response, request in
+                
+                var error:Error? = nil
+                if !request.disableHandleResponse {
+                    error = request.handleResponse?(response,request)
+                }
+                
+                if let weakSelf = self {
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false)
+                    }
+                    weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                }
+                callBack(request, response, error)
+                
+            }, failureCallBack: { [weak self] request, isCache, responseObject, error in
+                
+                let ykresponse = YKSwiftNetworkResponse()
+                ykresponse.rawData = responseObject
+                
+                if let weakSelf = self {
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false)
+                    }
+                    weakSelf.saveTask(request: request, response: ykresponse, isException: error != nil)
+                }
+                
+                callBack(request, ykresponse, error)
+            })
+            
+            self._request = nil
+            
+            break
+        case .Upload:
+            request.header.updateValue("multipart/form-data", forKey: "content-type")
+            if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil && request.formDataName != nil{
+                
+                request.task = YKSwiftBaseNetworking.upload(request: request, progressCallBack: { progress in
+                    request.progressBlock?(progress)
+                }, successCallBack: { [weak self] response, request in
+                    
+                    var error:Error? = nil
+                    if !request.disableHandleResponse {
+                        error = request.handleResponse?(response,request)
+                    }
+                    
+                    if let weakSelf = self {
+                        if request.isShowLoading {
+                            weakSelf.loadingHandle?(false)
+                        }
+                        weakSelf.saveTask(request: request, response: response, isException: error != nil)
+                    }
+                    callBack(request, response, error)
+                    
+                }, failureCallBack: { [weak self] request, isCache, responseObject, error in
+                    
+                    
+                    let ykresponse = YKSwiftNetworkResponse()
+                    ykresponse.rawData = responseObject
+                    
+                    if let weakSelf = self {
+                        if request.isShowLoading {
+                            weakSelf.loadingHandle?(false)
+                        }
+                        weakSelf.saveTask(request: request, response: ykresponse, isException: error != nil)
+                    }
+                    
+                    callBack(request, ykresponse, error)
+                    
+                })
+            }else {
+                let error = NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [NSLocalizedDescriptionKey:"未设置数据:上传前请先调用uploadData()方法"])
+                callBack(request, YKSwiftNetworkResponse(), error)
+            }
+            
+            self._request = nil
+            
+            break
+            
+        case .Download:
+            
+            request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
+                request.progressBlock?(progress)
+            }, successCallBack: { [weak self] response, request in
+                if let weakSelf = self {
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false)
+                    }
+                    weakSelf.saveTask(request: request, response: response, isException: false)
+                }
+                callBack(request,response,nil)
+            }, failureCallBack: { [weak self] request, isCache, responseObject, error in
+                
+                let ykresponse = YKSwiftNetworkResponse.init()
+                ykresponse.rawData = responseObject
+                
+                if let weakSelf = self {
+                    if request.isShowLoading {
+                        weakSelf.loadingHandle?(false)
+                    }
+                    weakSelf.saveTask(request: request, response: ykresponse, isException: error != nil)
+                }
+                
+                callBack(request,ykresponse,error)
+            })
+            self._request = nil
+            
+            break
+            
+        }
+        
+    }
     
+    func cancelAllRequest() -> Void {
+        for (_,value) in self.requestDictionary {
+            if value.task != nil {
+                value.task!.cancel()
+            }else if value.downloadTask != nil {
+                value.downloadTask!.cancel()
+            }
+        }
+        self.requestDictionary.removeAll()
+    }
     
+    func cancelRequest(with name:String) -> Void {
+        if self.requestDictionary.keys.contains(name) {
+            let request = self.requestDictionary[name]
+            if request!.task != nil {
+                request!.task!.cancel()
+            }else if request!.downloadTask != nil{
+                request!.downloadTask!.cancel()
+            }
+            self.requestDictionary.removeValue(forKey: name)
+        }else{
+            #if DEBUG
+                print("请求已经完成或者没有name = \(name)的请求")
+            #endif
+        }
+    }
     
-//    MARK:回调处理
-    internal func handleConfig(with request: YKSwiftNetworkRequest) -> Bool {
+}
+
+
+internal extension YKSwiftNetworking {
+    
+    func handleConfig(with request: YKSwiftNetworkRequest) -> Bool {
+            
+        //MARK: 回调处理
         if request.name == nil || request.name!.count == 0 {
             request.name = UUID.init().uuidString
         }
@@ -402,40 +588,7 @@ public class YKSwiftNetworking:NSObject
         return true
     }
     
-    private func config(with request: YKSwiftNetworkRequest) -> Void {
-        //TODO:类似设置serialize
-        
-    }
-    
-    
-    public func cancelAllRequest() -> Void {
-        for (_,value) in self.requestDictionary {
-            if value.task != nil {
-                value.task!.cancel()
-            }else if value.downloadTask != nil {
-                value.downloadTask!.cancel()
-            }
-        }
-        self.requestDictionary.removeAll()
-    }
-    
-    public func cancelRequest(with name:String) -> Void {
-        if self.requestDictionary.keys.contains(name) {
-            let request = self.requestDictionary[name]
-            if request!.task != nil {
-                request!.task!.cancel()
-            }else if request!.downloadTask != nil{
-                request!.downloadTask!.cancel()
-            }
-            self.requestDictionary.removeValue(forKey: name)
-        }else{
-            #if DEBUG
-                print("请求已经完成或者没有name = \(name)的请求")
-            #endif
-        }
-    }
-    
-    internal func saveTask(request: YKSwiftNetworkRequest, response: YKSwiftNetworkResponse, isException: Bool) -> Void {
+    func saveTask(request: YKSwiftNetworkRequest, response: YKSwiftNetworkResponse, isException: Bool) -> Void {
         /// 集中统一
         if let cacheRequest = YKSwiftNetworkingConfig.share.cacheRequest {
             cacheRequest(response,request,isException)
@@ -447,200 +600,9 @@ public class YKSwiftNetworking:NSObject
         }
     }
     
-    deinit {
-        #if DEBUG
-            print("deinit:YKSwiftNetworking")
-        #endif
-    }
-}
-
-public extension YKSwiftNetworking
-{
-    func exectue(callBack:@escaping (_ request:YKSwiftNetworkRequest, _ response:YKSwiftNetworkResponse, _ error:Error?)->Void) {
-        
-        guard let request = self.request.copy() as? YKSwiftNetworkRequest else {
-            callBack(YKSwiftNetworkRequest(), YKSwiftNetworkResponse(), NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                NSLocalizedDescriptionKey:"初始化发生错误",
-                NSLocalizedFailureReasonErrorKey:"初始化发生错误",
-                NSLocalizedRecoverySuggestionErrorKey:"初始化发生错误",
-            ]))
-            self._request = nil
-            return
-        }
-        
-        let canContinue = self.handleConfig(with: request)
-        if !canContinue {
-            callBack(request, YKSwiftNetworkResponse(), nil)
-            self._request = nil
-            return
-        }
-        
-        if request.isShowLoading {
-            self.loadingHandle?(true)
-        }
-        
-        request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
-            request.progressBlock?(progress)
-        }, successCallBack: { [weak self] response, request in
-            
-            if let weakSelf = self {
-                
-                if request.isShowLoading {
-                    weakSelf.loadingHandle?(false)
-                }
-                
-                var error:Error? = nil
-                if weakSelf.handleResponse != nil && !request.disableHandleResponse
-                {
-                    error = weakSelf.handleResponse!(response,request)
-                }
-                
-                weakSelf.saveTask(request: request, response: response, isException: error != nil)
-                
-                callBack(request, response, error)
-            }else {
-                callBack(request,response,nil)
-            }
-            
-        }, failureCallBack: { [weak self] request, isCache, responseObject, error in
-            
-            if request.isShowLoading,
-               let weakSelf = self
-            {
-                weakSelf.loadingHandle?(false)
-            }
-            
-            let ykresponse = YKSwiftNetworkResponse()
-            ykresponse.rawData = responseObject
-            
-            if let weakSelf = self {
-                weakSelf.saveTask(request: request, response: ykresponse, isException: true)
-            }
-            callBack(request, ykresponse, error)
-        })
-        
-        self._request = nil
-        
-    }
     
-    func executeupload(callBack:@escaping (_ request:YKSwiftNetworkRequest, _ response:YKSwiftNetworkResponse, _ error:Error?)->Void) {
-        
-        
-        guard let request = self.request.copy() as? YKSwiftNetworkRequest else {
-            callBack(YKSwiftNetworkRequest(), YKSwiftNetworkResponse(), NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                NSLocalizedDescriptionKey:"request初始化错误",
-                NSLocalizedFailureReasonErrorKey:"request初始化错误",
-                NSLocalizedRecoverySuggestionErrorKey:"request初始化错误",
-            ]))
-            self._request = nil
-            return
-        }
-        
-        request.header.updateValue("multipart/form-data", forKey: "content-type")
-        let canContinue = self.handleConfig(with: request)
-        if !canContinue {
-            callBack(request, YKSwiftNetworkResponse(), nil)
-            self._request = nil
-            return
-        }
-        
-        if request.isShowLoading {
-            self.loadingHandle?(true)
-        }
-        
-        if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil && request.formDataName != nil{
-            
-            request.task = YKSwiftBaseNetworking.upload(request: request, progressCallBack: { progress in
-                request.progressBlock?(progress)
-            }, successCallBack: { [weak self] response, request in
-                if let weakSelf = self {
-                    
-                    if request.isShowLoading {
-                        weakSelf.loadingHandle?(false)
-                    }
-
-                    var error:Error? = nil
-                    if weakSelf.handleResponse != nil && !request.disableHandleResponse {
-                        error = weakSelf.handleResponse!(response,request)
-                    }
-                    weakSelf.saveTask(request: request, response: response, isException: error != nil)
-                    callBack(request,response,error)
-                }else {
-                    
-                    callBack(request,response,nil)
-                }
-            }, failureCallBack: { [weak self] request, isCache, responseObject, error in
-                
-                if request.isShowLoading,
-                   let weakSelf = self
-                {
-                    weakSelf.loadingHandle?(false)
-                }
-                
-                let ykresponse = YKSwiftNetworkResponse()
-                ykresponse.rawData = responseObject
-                
-                if let weakSelf = self {
-                    weakSelf.saveTask(request: request, response: ykresponse, isException: true)
-                }
-                callBack(request, ykresponse, error)
-                
-            })
-        }else {
-            let error = NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [NSLocalizedDescriptionKey:"未设置数据:上传前请先调用uploadData()方法"])
-            callBack(request, YKSwiftNetworkResponse(), error)
-        }
-        
-        self._request = nil
-    }
-    
-    func executeDownload(callBack:@escaping (_ request:YKSwiftNetworkRequest, _ response:YKSwiftNetworkResponse, _ error:Error?)->Void) {
-        
-        guard let request = self.request.copy() as? YKSwiftNetworkRequest else {
-            callBack(YKSwiftNetworkRequest(), YKSwiftNetworkResponse(), NSError.init(domain: "com.yk.swift.networking", code: -1, userInfo: [
-                NSLocalizedDescriptionKey:"request初始化错误",
-                NSLocalizedFailureReasonErrorKey:"request初始化错误",
-                NSLocalizedRecoverySuggestionErrorKey:"request初始化错误",
-            ]))
-            self._request = nil
-            return }
-        
-        let canContinue = self.handleConfig(with: request)
-        if !canContinue {
-            callBack(request,YKSwiftNetworkResponse(),nil)
-            self._request = nil
-            return
-        }
-        
-        if request.isShowLoading {
-            self.loadingHandle?(true)
-        }
-        
-        request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
-            request.progressBlock?(progress)
-        }, successCallBack: { [weak self] response, request in
-            if let weakSelf = self {
-                if request.isShowLoading {
-                    weakSelf.loadingHandle?(false)
-                }
-                weakSelf.saveTask(request: request, response: response, isException: false)
-            }
-            callBack(request,response,nil)
-        }, failureCallBack: { [weak self] request, isCache, responseObject, error in
-            if request.isShowLoading
-            {
-                self?.loadingHandle?(false)
-            }
-
-            let ykresponse = YKSwiftNetworkResponse.init()
-            ykresponse.rawData = responseObject
-            if let weakSelf = self {
-                weakSelf.saveTask(request: request, response: ykresponse, isException: true)
-            }
-            callBack(request,ykresponse,error)
-        })
-        self._request = nil
+    func config(with request: YKSwiftNetworkRequest) -> Void {
+        //TODO:类似设置serialize
         
     }
-    
 }
