@@ -34,7 +34,7 @@ public typealias progressBlockType = (_ progress: Double) -> Void
 
 public class YKSwiftNetworking:NSObject
 {
-//    MARK:privte
+    //MARK: privateParams
     internal var _request:YKSwiftNetworkRequest? = nil
     internal var request:YKSwiftNetworkRequest{
         get{
@@ -79,20 +79,27 @@ public class YKSwiftNetworking:NSObject
     
     private var requestDictionary:[String:YKSwiftNetworkRequest] = [:]
     
-//    MARK:public
+    /** 公用头部 */
+    private var defaultHeader:[String:String]? = nil
+    
+    /** 公用参数 */
+    private var defaultParams:[String:Any]? = nil
+    
+    /** 保存一下手动传入的Header，保证他是最高优先级 */
+    private var inputHeaders:[String:String] = [:]
+    
+    /** 保存一下手动传入的参数，保证他是最高优先级 */
+    private var inputParams:[String:Any] = [:]
+    
+    
+    //MARK: openParams
     open weak var delegate: YKSwiftNetworkingDelegate?
     
     /** 通用请求头 */
     open var commonHeader:[String:String] = [:]
     
-    /** 公用头部 */
-    private var defaultHeader:[String:String]? = nil
-    
     /** 通用参数 */
     open var commonParams:[String:Any] = [:]
-    
-    /** 公用参数 */
-    private var defaultParams:[String:Any]? = nil
     
     /** 接口前缀 */
     open var prefixUrl:String? = nil
@@ -117,12 +124,6 @@ public class YKSwiftNetworking:NSObject
     /// 根据需求处理正在加载的内容
     open var loadingHandle:((_ loading:Bool) -> Void)?
     
-    /** 保存一下手动传入的Header，保证他是最高优先级 */
-    private var inputHeaders:[String:String] = [:]
-    
-    /** 保存一下手动传入的参数，保证他是最高优先级 */
-    private var inputParams:[String:Any] = [:]
-    
     
     public override init() {
         super.init()
@@ -141,12 +142,23 @@ public class YKSwiftNetworking:NSObject
         self.handleResponse = handleResponse
     }
     
-//    MARK:设置请求属性
+    
+    
+    deinit {
+        #if DEBUG
+            print("deinit:YKSwiftNetworking")
+        #endif
+    }
+}
+
+public extension YKSwiftNetworking
+{
+    //MARK: params:设置请求属性
     
     /// 本次请求地址
     /// - Parameter url: 地址
     /// - Returns: networking
-    public func url(_ url: String) -> YKSwiftNetworking {
+    func url(_ url: String) -> YKSwiftNetworking {
         var urlString:String = ""
         
         let utf8Url = url.addingPercentEncoding(withAllowedCharacters: CharacterSet.init(charactersIn: "`#%^{}\"[]|\\<> ").inverted) ?? ""
@@ -185,7 +197,7 @@ public class YKSwiftNetworking:NSObject
     /// 本次请求参数
     /// - Parameter params: 参数
     /// - Returns: networking
-    public func params(_ params: [String:Any]?) -> YKSwiftNetworking {
+    func params(_ params: [String:Any]?) -> YKSwiftNetworking {
         if let par = params {
             self.inputParams = par
             for (key,value) in par {
@@ -196,7 +208,7 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
-    public func header(_ header: [String:String]?) -> YKSwiftNetworking {
+    func header(_ header: [String:String]?) -> YKSwiftNetworking {
         if let hea = header {
             self.inputHeaders = hea
             for (key,value) in hea {
@@ -209,7 +221,7 @@ public class YKSwiftNetworking:NSObject
     /// 本次请求的请求编码
     /// - Parameter method: 请求方式
     /// - Returns: networking
-    public func encoding(_ encoding:YKSwiftNetworkRequestEncoding) -> YKSwiftNetworking {
+    func encoding(_ encoding:YKSwiftNetworkRequestEncoding) -> YKSwiftNetworking {
         self.request.encoding = encoding
         return self
     }
@@ -217,14 +229,14 @@ public class YKSwiftNetworking:NSObject
     /// 本次请求方式
     /// - Parameter method: 请求方式
     /// - Returns: networking
-    public func method(_ method: YKNetworkRequestMethod) -> YKSwiftNetworking {
+    func method(_ method: YKNetworkRequestMethod) -> YKSwiftNetworking {
         self.request.method = method
         return self
     }
     
     /// 本次请求不默认使用动态参数
     /// - Returns: networking
-    public func disableDynamicParams() -> YKSwiftNetworking {
+    func disableDynamicParams() -> YKSwiftNetworking {
         
         self.request.disableDynamicParams = true
         return self
@@ -232,7 +244,7 @@ public class YKSwiftNetworking:NSObject
     
     /// 本次请求默认不适用统一处理方式
     /// - Returns: networking
-    public func disableHandleResponse() -> YKSwiftNetworking {
+    func disableHandleResponse() -> YKSwiftNetworking {
         
         self.request.disableHandleResponse = true
         return self
@@ -240,18 +252,18 @@ public class YKSwiftNetworking:NSObject
     
     /// 本次请求忽略动态头文件
     /// - Returns: networking
-    public func disableDynamicHeader() -> YKSwiftNetworking {
+    func disableDynamicHeader() -> YKSwiftNetworking {
         
         self.request.disableDynamicHeader = true
         return self
     }
     
-    public func mockData(_ data:Any) -> YKSwiftNetworking {
+    func mockData(_ data:Any) -> YKSwiftNetworking {
         self.request.mockData = data
         return self
     }
     
-    public func httpBody(_ body:Data?) -> YKSwiftNetworking {
+    func httpBody(_ body:Data?) -> YKSwiftNetworking {
         self.request.httpBody = body
         return self
     }
@@ -259,7 +271,7 @@ public class YKSwiftNetworking:NSObject
     /// 最小响应时间
     /// - Parameter repeatInterval: 时间默认300
     /// - Returns: networking
-    public func minRepeatInterval(_ repeatInterval: Double) -> YKSwiftNetworking {
+    func minRepeatInterval(_ repeatInterval: Double) -> YKSwiftNetworking {
         
         self.request.repeatRequestInterval = repeatInterval
         return self
@@ -268,12 +280,13 @@ public class YKSwiftNetworking:NSObject
     /// 下载地址
     /// - Parameter destPath: 缓存地址文件夹
     /// - Returns: networking
-    public func downloadDestPath(_ destPath: String) -> YKSwiftNetworking {
+    func downloadDestPath(_ destPath: String) -> YKSwiftNetworking {
         
         self.request.destPath = destPath
         self.request.executeModel = .Download
         return self
     }
+    
     
     /// 上传设置
     /// - Parameters:
@@ -281,7 +294,7 @@ public class YKSwiftNetworking:NSObject
     ///   - filename: 上传文件名
     ///   - mimeType: 上传文件类型
     /// - Returns: networking
-    public func uploadData(data: Data, filename: String, mimeType: String, formDataName: String) -> YKSwiftNetworking {
+    func uploadData(data: Data, filename: String, mimeType: String, formDataName: String) -> YKSwiftNetworking {
         
         self.request.uploadFileData = data
         self.request.uploadName = filename
@@ -291,11 +304,10 @@ public class YKSwiftNetworking:NSObject
         return self
     }
     
-    
     /// 进度
     /// - Parameter progressBlock: 进度回调
     /// - Returns: networking
-    public func progress(_ progressBlock: @escaping ((_ progress:Double)->Void)) -> YKSwiftNetworking {
+    func progress(_ progressBlock: @escaping ((_ progress:Double)->Void)) -> YKSwiftNetworking {
         self.request.progressBlock = progressBlock
         return self
     }
@@ -305,47 +317,41 @@ public class YKSwiftNetworking:NSObject
     /// get请求
     /// - Parameter url: 地址
     /// - Returns: networking
-    public func get(_ url: String) -> YKSwiftNetworking {
+    func get(_ url: String) -> YKSwiftNetworking {
         return self.url(url).method(.GET)
     }
     
     /// post请求
     /// - Parameter url: 地址
     /// - Returns: networking
-    public func post(_ url: String) -> YKSwiftNetworking {
+    func post(_ url: String) -> YKSwiftNetworking {
         return self.url(url).method(.POST)
     }
     
     /// put请求
     /// - Parameter url: 地址
     /// - Returns: networking
-    public func put(_ url: String) -> YKSwiftNetworking {
+    func put(_ url: String) -> YKSwiftNetworking {
         return self.url(url).method(.PUT)
     }
     
     /// delete请求
     /// - Parameter url: 地址
     /// - Returns: networking
-    public func delete(_ url:String) -> YKSwiftNetworking {
+    func delete(_ url:String) -> YKSwiftNetworking {
         return self.url(url).method(.GET)
     }
     
     /// patch请求
     /// - Parameter url: 地址
     /// - Returns: networking
-    public func patch(_ url: String) -> YKSwiftNetworking {
+    func patch(_ url: String) -> YKSwiftNetworking {
         return self.url(url).method(.PATCH)
     }
     
-    public func showloading() -> YKSwiftNetworking {
+    func showloading() -> YKSwiftNetworking {
         self.request.isShowLoading = true
         return self
-    }
-    
-    deinit {
-        #if DEBUG
-            print("deinit:YKSwiftNetworking")
-        #endif
     }
 }
 
