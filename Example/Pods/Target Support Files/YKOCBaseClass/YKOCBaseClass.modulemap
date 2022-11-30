@@ -1,0 +1,6 @@
+framework module YKOCBaseClass {
+  umbrella header "YKOCBaseClass-umbrella.h"
+
+  export *
+  module * { export * }
+}

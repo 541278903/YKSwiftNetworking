@@ -1,0 +1,6 @@
+framework module Pods_YKOCBaseClass_Tests {
+  umbrella header "Pods-YKOCBaseClass_Tests-umbrella.h"
+
+  export *
+  module * { export * }
+}

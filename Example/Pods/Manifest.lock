@@ -1,0 +1,16 @@
+PODS:
+  - YKOCBaseClass (0.1.0)
+
+DEPENDENCIES:
+  - YKOCBaseClass (from `../`)
+
+EXTERNAL SOURCES:
+  YKOCBaseClass:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  YKOCBaseClass: 21a9955113dc68ebcb516ae44b1472d3b72c6c74
+
+PODFILE CHECKSUM: f57c18687fe15873a7565f70b45fdcdb5f6f23fd
+
+COCOAPODS: 1.10.2

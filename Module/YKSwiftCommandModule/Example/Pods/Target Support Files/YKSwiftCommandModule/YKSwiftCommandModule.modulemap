@@ -1,6 +1,0 @@
-framework module YKSwiftCommandModule {
-  umbrella header "YKSwiftCommandModule-umbrella.h"
-
-  export *
-  module * { export * }
-}

@@ -1,6 +1,0 @@
-framework module YKSwiftAlert {
-  umbrella header "YKSwiftAlert-umbrella.h"
-
-  export *
-  module * { export * }
-}
