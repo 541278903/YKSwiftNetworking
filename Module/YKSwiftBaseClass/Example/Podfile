@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '9.0'
+
+target 'YKSwiftBaseClass_Example' do
+  pod 'YKSwiftBaseClass', :path => '../'
+
+  target 'YKSwiftBaseClass_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

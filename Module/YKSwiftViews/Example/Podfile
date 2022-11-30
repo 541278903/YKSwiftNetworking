@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '9.0'
+
+target 'YKSwiftViews_Example' do
+  pod 'YKSwiftViews', :path => '../'
+
+  target 'YKSwiftViews_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

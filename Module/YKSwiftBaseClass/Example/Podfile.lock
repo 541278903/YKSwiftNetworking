@@ -1,0 +1,16 @@
+PODS:
+  - YKSwiftBaseClass (0.1.0)
+
+DEPENDENCIES:
+  - YKSwiftBaseClass (from `../`)
+
+EXTERNAL SOURCES:
+  YKSwiftBaseClass:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  YKSwiftBaseClass: 63513e78709d0cedd0e7216559aa87a22e0af94f
+
+PODFILE CHECKSUM: 39d9e47dbf5962a47f8d3fba537092da861a5292
+
+COCOAPODS: 1.11.2

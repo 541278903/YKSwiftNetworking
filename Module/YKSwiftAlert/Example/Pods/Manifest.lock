@@ -1,0 +1,16 @@
+PODS:
+  - YKSwiftAlert (0.1.0)
+
+DEPENDENCIES:
+  - YKSwiftAlert (from `../`)
+
+EXTERNAL SOURCES:
+  YKSwiftAlert:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  YKSwiftAlert: 279786f66ab8dbe1b6bde7dac2af291021404170
+
+PODFILE CHECKSUM: dde0b504d1e6ad5c49396b6f84741c6a67b8e3c6
+
+COCOAPODS: 1.10.2

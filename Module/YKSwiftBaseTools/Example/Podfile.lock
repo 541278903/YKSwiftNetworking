@@ -1,0 +1,20 @@
+PODS:
+  - YKSwiftBaseTools (0.1.0):
+    - YKSwiftBaseTools/Core (= 0.1.0)
+    - YKSwiftBaseTools/SwiftyJSON (= 0.1.0)
+  - YKSwiftBaseTools/Core (0.1.0)
+  - YKSwiftBaseTools/SwiftyJSON (0.1.0)
+
+DEPENDENCIES:
+  - YKSwiftBaseTools (from `../`)
+
+EXTERNAL SOURCES:
+  YKSwiftBaseTools:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  YKSwiftBaseTools: 434ef5ea9aba16d81945a5a3edd99597d6c58b30
+
+PODFILE CHECKSUM: a7b48a85debd6423c227a15abbcf532ad3abaf06
+
+COCOAPODS: 1.10.1

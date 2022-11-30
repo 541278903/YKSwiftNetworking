@@ -1,0 +1,23 @@
+PODS:
+  - YKSwiftExectionModel (0.1.1):
+    - YKSwiftExectionModel/Core (= 0.1.1)
+    - YKSwiftExectionModel/NSObject (= 0.1.1)
+    - YKSwiftExectionModel/UIKit (= 0.1.1)
+  - YKSwiftExectionModel/Core (0.1.1)
+  - YKSwiftExectionModel/NSObject (0.1.1)
+  - YKSwiftExectionModel/UIKit (0.1.1):
+    - YKSwiftExectionModel/Core
+
+DEPENDENCIES:
+  - YKSwiftExectionModel (from `../`)
+
+EXTERNAL SOURCES:
+  YKSwiftExectionModel:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  YKSwiftExectionModel: 29b2f95d53763f7d2fac6596bb71b6b457f78beb
+
+PODFILE CHECKSUM: 35eb9d96136186d5b869ecbd1150e9152f65498c
+
+COCOAPODS: 1.11.2

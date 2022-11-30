@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '9.0'
+
+target 'YKSwiftExectionModel_Example' do
+  pod 'YKSwiftExectionModel', :path => '../'
+
+  target 'YKSwiftExectionModel_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
