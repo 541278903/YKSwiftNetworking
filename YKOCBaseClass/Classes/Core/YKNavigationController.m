@@ -13,7 +13,7 @@
 
 @property (nonatomic,strong) id popDelegate;
 /** 返回按钮 */
-@property (nonatomic, strong) UIButton *backBtn;
+@property (nonatomic, strong, readwrite) UIButton *backBtn;
 /** 返回按钮 */
 @property (nonatomic, strong) UIBarButtonItem *backBtnItem;
 /** 最后push的controller的类名 */
@@ -307,30 +307,43 @@
 }
 
 - (nullable UIImage *)bc_imageNamed:(NSString *)name{
-    if(name &&
-       ![name isEqualToString:@""]){
-        NSBundle *bundle = [NSBundle bundleForClass:NSClassFromString(@"YKBaseViewController")];
-        NSURL *url = [bundle URLForResource:@"YKOCBaseClass" withExtension:@"bundle"];
-        if(!url) return [UIImage imageNamed:name]?:[UIImage new];
-        NSBundle *imageBundle = [NSBundle bundleWithURL:url];
+    if(name && ![name isEqualToString:@""]){
         
-        NSString *imageName = nil;
-        CGFloat scale = [UIScreen mainScreen].scale;
-        if (ABS(scale-3) <= 0.001){
-            imageName = [NSString stringWithFormat:@"%@@3x",name];
-        }else if(ABS(scale-2) <= 0.001){
-            imageName = [NSString stringWithFormat:@"%@@2x",name];
-        }else{
-            imageName = name;
-        }
-        UIImage *image = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:imageName ofType:@"png"]];
-        if (!image) {
-            image = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:name ofType:@"png"]];
-            if (!image) {
-                image = [UIImage imageNamed:name];
+        NSString *ClassName = @"YKNavigationController";
+        NSString *ResourceName = @"YKOCBaseClass";
+        
+        NSBundle *bundle = [NSBundle bundleForClass:NSClassFromString(ClassName)];
+        NSURL *url = [bundle URLForResource:ResourceName withExtension:@"bundle"];
+        
+        if (url) {
+            NSBundle *imageBundle = [NSBundle bundleWithURL:url];
+            
+            NSString *imageName = nil;
+            CGFloat scale = [UIScreen mainScreen].scale;
+            if (ABS(scale-3) <= 0.001){
+                imageName = [NSString stringWithFormat:@"%@@3x",name];
+            }else if(ABS(scale-2) <= 0.001){
+                imageName = [NSString stringWithFormat:@"%@@2x",name];
+            }else{
+                imageName = name;
             }
+            UIImage *image = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:imageName ofType:@"png"]];
+            if (!image) {
+                image = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:name ofType:@"png"]];
+                if (!image) {
+                    image = [UIImage imageNamed:name];
+                    if (!image) {
+                        NSBundle *bundle = [NSBundle bundleForClass:NSClassFromString(ClassName)];
+                        image = [UIImage imageNamed:name inBundle:bundle compatibleWithTraitCollection:nil];
+                    }
+                }
+            }
+            
+            return image;
+        }else {
+            NSBundle *bundle = [NSBundle bundleForClass:NSClassFromString(ClassName)];
+            return [UIImage imageNamed:name inBundle:bundle compatibleWithTraitCollection:nil];
         }
-        return image;
     }
     
     return nil;

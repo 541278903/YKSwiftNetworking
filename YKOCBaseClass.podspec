@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKOCBaseClass'
-  s.version          = '0.2.4'
+  s.version          = '0.2.6'
   s.summary          = 'A short description of YKOCBaseClass.'
 
 # This description is used to generate tags and improve search results.
@@ -19,7 +19,7 @@ Pod::Spec.new do |s|
 
   s.description      = <<-DESC
                       
-                      工具基类
+                      基类
                        DESC
 
   s.homepage         = 'https://gitee.com/Edwrard/YKOCBaseClass'
@@ -31,19 +31,24 @@ Pod::Spec.new do |s|
 
   s.ios.deployment_target = '9.0'
 
-  s.source_files = 'YKOCBaseClass/Classes/**/*'
-  s.resources = "YKOCBaseClass/Assets/**/*"
-  s.dependency 'YKNetWorking'
-  s.dependency 'YKDB'
-  s.dependency 'ReactiveObjC'
-  s.dependency 'MJExtension'
-  s.dependency 'MJRefresh'
-  s.dependency 'FDFullscreenPopGesture'
+  s.default_subspec = 'Core'
   
+  s.resources = "YKOCBaseClass/Assets/**/*"
+  s.source_files = 'YKOCBaseClass/Classes/YKOCBaseClass.h'
 
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
+  s.subspec 'Core' do |ss|
+    ss.dependency 'YKNetWorking'
+    ss.dependency 'MJExtension'
+    ss.dependency 'FDFullscreenPopGesture'
+    
+    ss.source_files = 'YKOCBaseClass/Classes/Core/**/*'
+  end
+  s.subspec 'RAC' do |ss|
+    ss.dependency 'ReactiveObjC'
+    ss.dependency 'MJRefresh'
+    ss.dependency 'YKOCBaseClass/Core'
+    ss.source_files = 'YKOCBaseClass/Classes/RAC/**/*'
+  end
 end
 
 # 

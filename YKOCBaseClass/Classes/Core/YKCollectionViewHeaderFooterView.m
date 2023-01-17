@@ -23,17 +23,6 @@
     
 }
 
-/// UI构建
-- (void)didSetupUI:(UIView *)view
-{
-    
-}
-
-- (void)didBindData
-{
-    
-}
-
 - (void)configDataWithViewModel:(YKViewModel *)viewModel indexPath:(NSIndexPath *)indexPath dataSource:(NSArray *)dataSource
 {
     

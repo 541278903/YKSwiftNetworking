@@ -8,6 +8,7 @@
 
 #import "YKBaseViewController.h"
 #import <FDFullscreenPopGesture/UINavigationController+FDFullscreenPopGesture.h>
+#import "YKNavigationController.h"
 
 @interface YKBaseViewController ()
 ///
@@ -74,7 +75,7 @@
     if (@available(iOS 11.0, *)) {
         safeArea = self.view.safeAreaInsets;
     }
-    [self didLayoutSubviews:safeArea];
+    [self didLayoutSubviewsWith:safeArea];
 }
 
 /// 在viewdidload自动执行
@@ -93,7 +94,7 @@
     
 }
 
-- (void)didLayoutSubviews:(UIEdgeInsets)safeArea
+- (void)didLayoutSubviewsWith:(UIEdgeInsets)safeArea
 {
     
 }
@@ -108,7 +109,7 @@
      然而并不是每次系统调用traitCollectionDidChange:方法时，模式都有变化，也有可能是设备进行了旋转也会调用traitCollectionDidChange:方法，所以此时需要判断系统主题模式是否发生了改变
      
      */
-    if (@available(iOS 13.0, *)) {
+    if (@available(iOS 12.0, *)) {
         UIUserInterfaceStyle userInterfaceStyle = previousTraitCollection.userInterfaceStyle;
         self.userInterfaceStyle = userInterfaceStyle;
         [self changeUserInterfaceStyle:userInterfaceStyle];
@@ -118,7 +119,27 @@
 - (void)changeUserInterfaceStyle:(UIUserInterfaceStyle)style
 {
     
+    UIImage *backImage = [UIImage new];
+    if (@available(iOS 13.0, *)) {
+        if (style == UIUserInterfaceStyleDark) {
+            backImage = [self bc_imageNamed:@"ic_bc_back_while"];
+        }else
+        {
+            backImage = [self bc_imageNamed:@"ic_bc_back_black"];
+        }
+    } else {
+        backImage = [self bc_imageNamed:@"ic_bc_back_black"];
+    }
+    backImage = [backImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    YKNavigationController *nav = (YKNavigationController *)self.navigationController;
+    if (nav) {
+        [nav.backBtn setImage:backImage forState:UIControlStateNormal];
+        [nav.backBtn setImage:backImage forState:UIControlStateHighlighted];
+    }
+    
+    
 }
+
 
 - (void)motionBegan:(UIEventSubtype)motion withEvent:(UIEvent *)event
 {
@@ -141,7 +162,8 @@
 #endif
 }
 
-
+//MARK: debugShake
+#ifdef DEBUG
 - (NSMutableArray<UIAlertAction *> *)debugShakeActions
 {
     NSMutableArray *array = [NSMutableArray array];
@@ -160,6 +182,53 @@
     return array;
 }
 
+#endif
+
+
+- (nullable UIImage *)bc_imageNamed:(NSString *)name{
+    if(name && ![name isEqualToString:@""]){
+        
+        NSString *ClassName = @"YKBaseViewController";
+        NSString *ResourceName = @"YKOCBaseClass";
+        
+        NSBundle *bundle = [NSBundle bundleForClass:NSClassFromString(ClassName)];
+        NSURL *url = [bundle URLForResource:ResourceName withExtension:@"bundle"];
+        
+        if (url) {
+            NSBundle *imageBundle = [NSBundle bundleWithURL:url];
+            
+            NSString *imageName = nil;
+            CGFloat scale = [UIScreen mainScreen].scale;
+            if (ABS(scale-3) <= 0.001){
+                imageName = [NSString stringWithFormat:@"%@@3x",name];
+            }else if(ABS(scale-2) <= 0.001){
+                imageName = [NSString stringWithFormat:@"%@@2x",name];
+            }else{
+                imageName = name;
+            }
+            UIImage *image = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:imageName ofType:@"png"]];
+            if (!image) {
+                image = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:name ofType:@"png"]];
+                if (!image) {
+                    image = [UIImage imageNamed:name];
+                    if (!image) {
+                        NSBundle *bundle = [NSBundle bundleForClass:NSClassFromString(ClassName)];
+                        image = [UIImage imageNamed:name inBundle:bundle compatibleWithTraitCollection:nil];
+                    }
+                }
+            }
+            
+            return image;
+        }else {
+            NSBundle *bundle = [NSBundle bundleForClass:NSClassFromString(ClassName)];
+            return [UIImage imageNamed:name inBundle:bundle compatibleWithTraitCollection:nil];
+        }
+    }
+    
+    return nil;
+}
+
+//MARK: get/set
 - (void)setBackItemTitle:(NSString *)backItemTitle
 {
     _backItemTitle = [backItemTitle copy];

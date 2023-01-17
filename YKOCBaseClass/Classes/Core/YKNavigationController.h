@@ -32,7 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) NSString *tabbarTitle;
 
 /** 返回按钮 */
-@property (nonatomic, strong, readonly) UIBarButtonItem *backBtnItem;
+@property (nonatomic, strong, readonly) UIButton *backBtn;
 
 /** 返回按钮颜色 */
 @property (nonatomic, strong) UIColor *backButtonColor;

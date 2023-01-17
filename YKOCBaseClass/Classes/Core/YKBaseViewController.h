@@ -7,7 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <ReactiveObjC/ReactiveObjC.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -50,12 +49,18 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)didBindData;
 
 /// UI稳定刷新
-- (void)didLayoutSubviews:(UIEdgeInsets)safeArea;
+- (void)didLayoutSubviewsWith:(UIEdgeInsets)safeArea;
+
+
+- (void)changeUserInterfaceStyle:(UIUserInterfaceStyle)style API_AVAILABLE(ios(12.0));
+
+
+#ifdef DEBUG
 
 /// debug模式摇一摇action
 - (NSMutableArray<UIAlertAction *> *)debugShakeActions;
 
-- (void)changeUserInterfaceStyle:(UIUserInterfaceStyle)style API_AVAILABLE(ios(12.0));
+#endif
 
 @end
 

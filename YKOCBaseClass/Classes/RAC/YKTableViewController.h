@@ -7,7 +7,7 @@
 
 #import "YKBaseViewController.h"
 
-@class YKViewModel,RACCommand,MJRefreshHeader,MJRefreshBackNormalFooter;
+@class YKViewModel,RACCommand,MJRefreshHeader,MJRefreshBackNormalFooter,RACSubject;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -24,6 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, readwrite) MJRefreshHeader *header;
 ///
 @property (nonatomic, strong, readwrite) MJRefreshBackNormalFooter *footer;
+///
+@property (nonatomic, strong, readonly) RACSubject *errorSubject;
  
 - (void)registerWithClass:(Class)clazz identifier:(NSString *)identifier;
 

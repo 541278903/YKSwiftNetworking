@@ -16,6 +16,8 @@
 @property (nonatomic, strong) UITableView *tableView;
 ///
 @property (nonatomic,copy) NSString *identifier;
+///
+@property (nonatomic, strong, readwrite) RACSubject *errorSubject;
 
 @end
 
@@ -150,7 +152,7 @@
         @strongify(self);
         [self.tableView.mj_header endRefreshing];
         [self.tableView.mj_footer endRefreshing];
-        [self.viewModel.errorSubject sendNext:x];
+        [self.errorSubject sendNext:x];
     }];
     self.tableView.mj_header = self.header;
     
@@ -185,6 +187,14 @@
         _dataSource = [NSMutableArray array];
     }
     return _dataSource;
+}
+
+- (RACSubject *)errorSubject
+{
+    if (!_errorSubject) {
+        _errorSubject = [RACSubject subject];
+    }
+    return _errorSubject;
 }
 
 @end

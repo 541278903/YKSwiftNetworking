@@ -19,12 +19,6 @@ NS_ASSUME_NONNULL_BEGIN
 /// 在init(Frame:)自动执行
 - (void)autoExecute;
 
-/// UI构建
-- (void)didSetupUI:(UIView *)view;
-
-- (void)didBindData;
-
-- (void)didBindData;
 
 - (void)configDataWithViewModel:(YKViewModel *)viewModel indexPath:(NSIndexPath *)indexPath dataSource:(NSArray *)dataSource;
 

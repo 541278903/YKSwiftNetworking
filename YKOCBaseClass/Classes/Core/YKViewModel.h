@@ -7,22 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <ReactiveObjC/ReactiveObjC.h>
 #import <YKNetWorking/YKNetWorking.h>
-#import <YKDB/YKDB.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface YKViewModel : NSObject<YKNetWorkingDelegate>
+@interface YKViewModel : NSObject
  
 /**网络请求*/
 @property (nonatomic, strong,readonly) YKNetWorking *netWorking;
-
-/**本地缓存*/
-@property (nonatomic, strong,readonly) YKBaseDBManager *dbManager;
-
-/**错误集合*/
-@property (nonatomic, strong,readonly) RACSubject<NSError *> *errorSubject;
 
 
 @property (nonatomic, assign) NSInteger size;

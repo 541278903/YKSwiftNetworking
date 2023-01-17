@@ -17,8 +17,7 @@
     self.backgroundColor = UIColor.whiteColor;
     self.contentView.backgroundColor = UIColor.whiteColor;
     
-//    self.accessoryType = UITableViewCellAccessoryCheckmark;
-//    self.accessoryView  = UIView.instance;
+    
 }
 
 - (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier

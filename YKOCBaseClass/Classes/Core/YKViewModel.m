@@ -12,11 +12,6 @@
 /**网络请求*/
 @property (nonatomic, strong,readwrite) YKNetWorking *netWorking;
 
-/**本地缓存*/
-@property (nonatomic, strong,readwrite) YKBaseDBManager *dbManager;
-
-/**错误集合*/
-@property (nonatomic, strong,readwrite) RACSubject<NSError *> *errorSubject;
 @end
 
 @implementation YKViewModel
@@ -40,41 +35,23 @@
     [datas addObjectsFromArray:newData];
 }
 
-- (RACSubject<NSError *> *)errorSubject
-{
-    if(!_errorSubject) {
-        _errorSubject = [RACSubject subject];
-    }
-    return _errorSubject;
-}
 
 - (YKNetWorking *)netWorking
 {
     if(!_netWorking)
     {
         _netWorking = [[YKNetWorking alloc]init];
-        _netWorking.delegate = self;
-        @weakify(self);
+        __weak typeof(self) weakSelf = self;
         _netWorking.dynamicParamsConfig = ^NSDictionary * _Nonnull(YKNetworkRequest * _Nonnull request) {
-            @strongify(self);
+            __strong typeof(weakSelf) strongSelf = weakSelf;
             if (request.method != YKNetworkRequestMethodGET) return nil;
-            return @{@"size":@(self.size).stringValue,@"page":@(self.page).stringValue};
+            return @{@"size":@(strongSelf.size).stringValue,@"page":@(strongSelf.page).stringValue};
         };
     }
     return _netWorking;
 }
 
-- (YKBaseDBManager *)dbManager
-{
-    if (!_dbManager) {
-        _dbManager = [YKBaseDBManager sharedInstance];
-    }
-    return _dbManager;
-}
 
-- (void)cacheRequest:(YKNetworkRequest *)request resonse:(YKNetworkResponse *)resonse isException:(BOOL)isException
-{
-    
-}
+
 
 @end
