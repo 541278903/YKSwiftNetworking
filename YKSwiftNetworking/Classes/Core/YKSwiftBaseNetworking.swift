@@ -7,7 +7,6 @@
 
 import UIKit
 import Alamofire
-import SwiftyJSON
 
 internal class YKSwiftBaseNetworking: NSObject {
     
@@ -17,7 +16,7 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         if request.mockData != nil {
             let ykresponse = YKSwiftNetworkResponse.init()
-            ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: request.mockData!)
+            ykresponse.rawData = request.mockData!
             ykresponse.isCache = false
             ykresponse.code = 200
             successCallBack(ykresponse,request)
@@ -40,7 +39,7 @@ internal class YKSwiftBaseNetworking: NSObject {
             switch response.result {
             case .success(let data):
                 let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: data)
+                ykresponse.rawData = data
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 successCallBack(ykresponse,request)
@@ -64,27 +63,27 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         if request.mockData != nil {
             let ykresponse = YKSwiftNetworkResponse.init()
-            ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: request.mockData!)
+            ykresponse.rawData = request.mockData!
             ykresponse.isCache = false
             ykresponse.code = 200
             successCallBack(ykresponse,request)
             return nil
         }
         
-        let task =  AF.upload(multipartFormData: { [weak request] multipartFormData in
-            guard let req = request else { return }
-            for (key,value) in req.params {
+        let task =  AF.upload(multipartFormData: { multipartFormData in
+//            guard let req = request else { return }
+            for (key,value) in request.params {
                 let data = "\(value)".data(using: String.Encoding.utf8) ?? Data.init()
                 multipartFormData.append(data, withName: key)
             }
-            multipartFormData.append(req.uploadFileData!, withName: req.formDataName!, fileName: req.uploadName!, mimeType: req.uploadMimeType!)
+            multipartFormData.append(request.uploadFileData!, withName: request.formDataName!, fileName: request.uploadName!, mimeType: request.uploadMimeType!)
         }, to: request.urlStr, method: request.methodStr, headers: HTTPHeaders.init(request.header)).uploadProgress { progress in
             progressCallBack(progress.fractionCompleted)
         }.response { response in
             switch response.result {
             case .success(let data):
                 let ykresponse = YKSwiftNetworkResponse.init()
-                ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: data)
+                ykresponse.rawData = data
                 ykresponse.isCache = false
                 ykresponse.code = response.response?.statusCode ?? 0
                 successCallBack(ykresponse,request)
@@ -107,7 +106,7 @@ internal class YKSwiftBaseNetworking: NSObject {
         
         if request.mockData != nil {
             let ykresponse = YKSwiftNetworkResponse.init()
-            ykresponse.rawData = YKSwiftBaseNetworking.resultToChang(data: request.mockData!)
+            ykresponse.rawData = request.mockData!
             ykresponse.isCache = false
             ykresponse.code = 200
             successCallBack(ykresponse,request)
@@ -173,33 +172,4 @@ internal class YKSwiftBaseNetworking: NSObject {
         
     }
     
-    private static func resultToChang(data:Any?)->Any?
-    {
-        if let jsonData = data as? Data,
-           let json = try? JSON.init(data: jsonData)
-        {
-            if json.dictionary != nil {
-                
-                return json.dictionaryObject
-            }else if json.array != nil {
-                
-                return json.arrayObject
-            }else if json.string != nil {
-                
-                return json.stringValue
-            }else if json.bool != nil {
-                
-                return json.boolValue
-            }else if json.number != nil {
-                
-                return json.numberValue
-            }else if json.error != nil {
-                return json.error!
-            }else{
-                return json.object
-            }
-        }else {
-            return data
-        }
-    }
 }
