@@ -6,7 +6,15 @@
 //
 
 import UIKit
+import Foundation
 
-class YKSwiftNetworkError: NSObject {
+public enum YKSwiftNetworkError: Error {
+    
+}
 
+extension Error {
+    /// Returns the instance cast as an `AFError`.
+    public var asYKSwiftNetworkError: YKSwiftNetworkError? {
+        self as? YKSwiftNetworkError
+    }
 }
