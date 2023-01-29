@@ -16,11 +16,12 @@ public extension Reactive where Base: YKSwiftNetworking {
     func request() -> Observable<(request: YKSwiftNetworkRequest,response: YKSwiftNetworkResponse)> {
         let observable = Observable<(request: YKSwiftNetworkRequest,response: YKSwiftNetworkResponse)>.create { observer in
             
-            base.exectue { request, response, error in
-                if let err = error {
-                    observer.onError(err)
-                }else {
-                    observer.onNext((request,response))
+            base.exectue { result in
+                switch result {
+                case .success(let yKSwiftNetworkRequest, let yKSwiftNetworkResponse):
+                    observer.onNext((yKSwiftNetworkRequest,yKSwiftNetworkResponse))
+                case .failure(_, let error):
+                    observer.onError(error)
                 }
                 observer.onCompleted()
             }

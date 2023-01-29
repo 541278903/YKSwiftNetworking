@@ -173,6 +173,18 @@ extension ViewController {
         
         var normalnetwork = YKSwiftNetworking.init()
         
+        //请求的统一处理方式
+        normalnetwork.handleResponse = { response,request in
+            //动态对返回数据进行修改
+            response.rawData = NSError(domain: "yk.error", code: -1, userInfo: [NSLocalizedFailureReasonErrorKey:"23"])
+            //如果本次请求不满意可进行返回error则本次请求直接当做错误返回
+            return NSError(domain: "yk.error", code: -1, userInfo: [
+                NSLocalizedDescriptionKey:"初始egsrgwerg化发生错误",
+                NSLocalizedFailureReasonErrorKey:"初始化发wefgawegfaweg生错误",
+                NSLocalizedRecoverySuggestionErrorKey:"初始化segserg发生错误",
+            ])
+        }
+        
         normalnetwork = normalnetwork.method(.GET).url("https://ios.tipsoon.com")
         
         //添加参数
@@ -203,11 +215,21 @@ extension ViewController {
         normalnetwork = normalnetwork.mockData(["123","321"])
         //
         
-        normalnetwork.exectue { request, response, error in
-            if let err = error {
-                print("error:\(err.localizedDescription)")
-            }else {
-                print("\(String(describing: response.rawData))")
+        normalnetwork.exectue { result in
+            switch result {
+            case .success(_, let yKSwiftNetworkResponse):
+                
+                if let data = yKSwiftNetworkResponse.rawData as? Data,
+                   let str = String.init(data: data, encoding: .utf8)
+                {
+                    print("\(str)")
+                }else if let strs = yKSwiftNetworkResponse.rawData {
+                    print("\(strs)")
+                }
+                break
+            case .failure(_, let error):
+                print("\(error.localizedDescription)")
+                break
             }
         }
         
@@ -258,7 +280,7 @@ extension ViewController {
     
     func testDownloadRequest() {
         
-        var normalnetwork = self.networking.method(.GET).url("")
+        var normalnetwork = self.networking.method(.GET).url("http://pic.imeitou.com/uploads/allimg/210717/3-210GG64111.jpg")
         
         //添加参数
         normalnetwork = normalnetwork.params(["paramKey":"paramValue"])
@@ -284,7 +306,7 @@ extension ViewController {
         singleResponse.subscribe(onNext: { responseData in
             print("\(responseData)")
         }, onError: { error in
-            
+            print("\(error.localizedDescription)")
         }, onCompleted: {
             
         }, onDisposed: nil).disposed(by: self.disposeBag)
