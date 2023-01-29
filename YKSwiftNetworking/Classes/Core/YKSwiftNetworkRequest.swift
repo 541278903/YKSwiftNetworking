@@ -8,6 +8,11 @@
 import Foundation
 import Alamofire
 
+public enum YKNetworkResult {
+    case success(YKSwiftNetworkRequest, YKSwiftNetworkResponse)
+    case failure(YKSwiftNetworkRequest, Error)
+}
+
 public enum YKSwiftNetworkRequestEncoding {
     case URLEncoding
     case JSONEncoding
