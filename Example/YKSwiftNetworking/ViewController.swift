@@ -190,15 +190,26 @@ extension ViewController {
         normalnetwork = normalnetwork.mockData(["123","321"])
         //
         
+        networking.execute { result in
+            switch result {
+            case .success(let yKSwiftNetworkRequest, let yKSwiftNetworkResponse):
+                print("\(yKSwiftNetworkResponse.rawData)")
+                break
+            case .failure(_, let error):
+                print("\(error.localizedDescription)")
+                break
+            }
+        }
+        
         //产生请求报文
-        let single = normalnetwork.rxexecute()
+        let single = normalnetwork.rx.request()
         
         //申请请求
         single.subscribe(onNext: { (request: YKSwiftNetworkRequest, response: YKSwiftNetworkResponse) in
             //请求成功将返回元组，元组包含 request,response
             //request:此次请求的请求头
             //response:此次请求返回的回调信息
-            
+            print("\(response.rawData)")
         }, onError: { error in
             
         }, onCompleted: {
@@ -209,7 +220,7 @@ extension ViewController {
         single.mapWithRawData().subscribe(onNext: { responseData in
             //请求成功将返回可选值数据
             //responseData:此次请求给到的回调内容
-            
+            print("\(responseData)")
         }, onError: { erro in
             
         }, onCompleted: {
@@ -220,13 +231,11 @@ extension ViewController {
         // 最后成熟的请求方式
         self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData(Data.init(base64Encoded: "ceshiBase")).progress({ progress in
             
-        }).rxexecute().mapWithRawData().subscribe(onNext: { responseData in
-            print("responseData:\(responseData)")
+        }).rx.request().mapWithRawData().subscribe(onNext: { data in
+            
         }, onError: { error in
             
-        }, onCompleted: {
-            
-        }, onDisposed: nil).disposed(by: self.disposeBag)
+        }).disposed(by: self.disposeBag)
     }
     
     func testUploadRequest() -> Void {
@@ -258,7 +267,7 @@ extension ViewController {
         normalnetwork = normalnetwork.uploadData(data: data, filename: "text.jpeg", mimeType: "image/jpeg", formDataName: "file")
         
         // 本次请求为上传请求
-        let single = normalnetwork.uploadDataSignal()
+        let single = normalnetwork.rx.request()
         
         // 本次请求使用统一处理方式
         let singleResponse = single.mapWithRawData()
@@ -273,7 +282,7 @@ extension ViewController {
     
     func testDownloadRequest() {
         
-        var normalnetwork = self.networking.method(.GET).url("https://s.cn.bing.net/th?id=OHR.AnniversaryJTNP_ZH-CN9974030692_1920x1080.jpg&rf=LaDigue_1920x1080.jpg")
+        var normalnetwork = self.networking.method(.GET).url("http://pic.imeitou.com/uploads/allimg/210717/3-210GG64111.jpg")
         
         //添加参数
         normalnetwork = normalnetwork.params(["paramKey":"paramValue"])
@@ -292,7 +301,7 @@ extension ViewController {
         // 本次下载请求的保存路径，仅需要针对获取路径的文件夹名即可，我将自动保存在cache沙盒中，并自动使用服务器下载的文件名
         normalnetwork = normalnetwork.downloadDestPath("download/jpeg")
         
-        let single = normalnetwork.downloadDataSignal()
+        let single = normalnetwork.rx.request()
         
         let singleResponse = single.mapWithRawData()
         

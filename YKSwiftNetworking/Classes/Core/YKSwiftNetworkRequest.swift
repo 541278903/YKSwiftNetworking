@@ -8,9 +8,20 @@
 import Foundation
 import Alamofire
 
+public enum YKNetworkResult {
+    case success(YKSwiftNetworkRequest, YKSwiftNetworkResponse)
+    case failure(YKSwiftNetworkRequest, Error)
+}
+
 public enum YKSwiftNetworkRequestEncoding {
     case URLEncoding
     case JSONEncoding
+}
+
+internal enum YKSwiftNetworkRequestExecuteMode {
+    case Normal
+    case Upload
+    case Download
 }
 
 public class YKSwiftNetworkRequest: NSObject, NSCopying
@@ -39,6 +50,7 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
         request.encoding = self.encoding
         request.mockData = self.mockData
         request.httpBody = self.httpBody
+        request.executeModel = self.executeModel
         return request
     }
     
@@ -127,6 +139,8 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
     public var downloadTask:URLSessionDownloadTask? = nil
     
     public var isShowLoading:Bool = false
+    
+    internal var executeModel:YKSwiftNetworkRequestExecuteMode = .Normal
     
     public override init() {
         super.init()
