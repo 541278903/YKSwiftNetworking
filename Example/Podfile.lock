@@ -1,5 +1,5 @@
 PODS:
-  - Alamofire (5.6.1)
+  - Alamofire (5.6.4)
   - RxSwift (6.5.0)
   - YKSwiftNetworking (3.2.1):
     - YKSwiftNetworking/Core (= 3.2.1)
@@ -23,7 +23,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  Alamofire: 87bd8c952f9a4454320fce00d9cc3de57bcadaf5
+  Alamofire: 4e95d97098eacb88856099c4fc79b526a299e48c
   RxSwift: 5710a9e6b17f3c3d6e40d6e559b9fa1e813b2ef8
   YKSwiftNetworking: 299036a8cbca6baa30f0627963aee1dfbd8910c9
 
