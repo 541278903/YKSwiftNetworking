@@ -353,6 +353,14 @@ public extension YKSwiftNetworking
         self.request.isShowLoading = true
         return self
     }
+    
+    /// 设置本次请求的超时时间
+    /// - Parameter timeoutInterval: 超时时长
+    /// - Returns: networking
+    func timeoutInterval(_ timeoutInterval:TimeInterval) -> YKSwiftNetworking {
+        self.request.timeoutInterval = timeoutInterval
+        return self
+    }
 }
 
 public extension YKSwiftNetworking

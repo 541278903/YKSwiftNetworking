@@ -52,6 +52,7 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
         request.httpBody = self.httpBody
         request.executeModel = self.executeModel
         request.handleResponse = self.handleResponse
+        request.timeoutInterval = self.timeoutInterval
         return request
     }
     
@@ -140,6 +141,8 @@ public class YKSwiftNetworkRequest: NSObject, NSCopying
     public var downloadTask:URLSessionDownloadTask? = nil
     
     public var isShowLoading:Bool = false
+    
+    public var timeoutInterval:TimeInterval?
     
     internal var executeModel:YKSwiftNetworkRequestExecuteMode = .Normal
     
