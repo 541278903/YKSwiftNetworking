@@ -8,8 +8,8 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftNetworking'
-  s.version          = '3.2.1'
-  s.summary          = 'A short description of YKSwiftNetworking.'
+  s.version          = '3.2.2'
+  s.summary          = 'swift网络请求框架'
 
 
   s.description      = <<-DESC

@@ -37,6 +37,8 @@ class ViewController: UIViewController {
     
     private let disposeBag = DisposeBag()
     
+    private var needToReturnError = false
+    
     private lazy var tableView:UITableView = {
         let tableView = UITableView.init(frame: self.view.bounds, style: UITableView.Style.grouped)
         
@@ -52,7 +54,9 @@ class ViewController: UIViewController {
         let networking = YKSwiftNetworking.init()
         
         //本次网络请求的统一回调处理
-        networking.handleResponse = { response,request in
+        networking.handleResponse = { [weak self] response,request in
+            guard let weakSelf = self else { return nil }
+            
             // response 为回调体
             // request 为请求头
             
@@ -65,17 +69,18 @@ class ViewController: UIViewController {
             // 例子
             if let data = response.rawData as? Data {
                 response.rawData = String.init(data: data, encoding: String.Encoding.utf8)
-            }else {
-                response.rawData = "测试回调数据"
             }
             // 修改完后，那么请求回调的数据里面就是此处设置的数据
             
             // 返回如果无错误则返回nil，如果回调内容不符合需求可组织Error 然后返回出去
-            if true {
-                return nil
-            }else {
-                return NSError.init(domain: "com.yk.network", code: -1)
+            if weakSelf.needToReturnError {
+                return NSError.init(domain: "com.yk.network", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey:"统一处理回调返回的错误"
+                ])
             }
+            
+            
+            return nil
         }
         
         return networking
@@ -212,7 +217,7 @@ extension ViewController {
         // 本次请求默认不适用统一处理方式  统一处理方式指 当前networking定义的 handleResponse
         normalnetwork = normalnetwork.disableHandleResponse()
         // 本次请求将不进行网络数据传输，直接返回设定的mock数据
-        normalnetwork = normalnetwork.mockData(["123","321"])
+//        normalnetwork = normalnetwork.mockData(["123","321"])
         //
         
         normalnetwork.exectue { result in
@@ -349,17 +354,17 @@ extension ViewController {
             
         }).dispose()
         
-        
-        
+        // 设置统一处理将返回错误
+        self.needToReturnError = true
         
         // 最后成熟的请求方式
         
-        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).progress({ progress in
+        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).mockData(["123":"321"]).progress({ progress in
             
         }).rx.request().mapWithRawData().subscribe(onNext: { responseData in
             print("responseData:\(String(describing: responseData))")
         }, onError: { error in
-            
+            print("networkError:\(error.localizedDescription)")
         }, onCompleted: {
             
         }, onDisposed: nil).disposed(by: self.disposeBag)
