@@ -8,8 +8,7 @@
 import Foundation
 import RxSwift
 
-extension Observable
-{
+extension Observable {
     
     /// 构建回调数据
     /// - Parameter key: 可选：需要取出的字典key，若返回数据未字典类型，会优先抽取对应key的值返回出去
