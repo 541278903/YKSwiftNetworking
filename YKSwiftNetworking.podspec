@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftNetworking'
-  s.version          = '3.2.2'
+  s.version          = '3.2.3'
   s.summary          = 'swift网络请求框架'
 
 

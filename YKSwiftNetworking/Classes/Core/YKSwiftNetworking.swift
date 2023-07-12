@@ -135,7 +135,7 @@ public class YKSwiftNetworking:NSObject
     ///   - defaultParams: 默认菜蔬
     ///   - prefixUrl: 默认连接头
     ///   - handleResponse: 默认处理方式
-    public convenience init(_ defaultHeader: [String:String]? = nil, _ defaultParams: [String:Any]? = nil, _ prefixUrl: String? = nil, _ handleResponse: ((_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Error?)? = nil ) {
+    public convenience init(defaultHeader: [String:String]? = nil, defaultParams: [String:Any]? = nil, prefixUrl: String? = nil, handleResponse: ((_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Error?)? = nil ) {
         self.init()
         self.defaultHeader = defaultHeader
         self.defaultParams = defaultParams
