@@ -185,7 +185,6 @@ private extension YKSwiftBaseNetworking {
     
     static func configWith(request:YKSwiftNetworkRequest) -> Void {
         
-        request.header.updateValue("testvalue", forKey: "testKey")
     }
     
     static func resultToChang(data:Any?)->Any?
