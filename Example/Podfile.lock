@@ -1,11 +1,11 @@
 PODS:
   - Alamofire (5.7.1)
   - RxSwift (6.5.0)
-  - YKSwiftNetworking (3.2.2):
-    - YKSwiftNetworking/Core (= 3.2.2)
-  - YKSwiftNetworking/Core (3.2.2):
+  - YKSwiftNetworking (3.2.3):
+    - YKSwiftNetworking/Core (= 3.2.3)
+  - YKSwiftNetworking/Core (3.2.3):
     - Alamofire (~> 5.0)
-  - YKSwiftNetworking/RxSwift (3.2.2):
+  - YKSwiftNetworking/RxSwift (3.2.3):
     - RxSwift (~> 6.0)
     - YKSwiftNetworking/Core
 
@@ -25,7 +25,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Alamofire: 0123a34370cb170936ae79a8df46cc62b2edeb88
   RxSwift: 5710a9e6b17f3c3d6e40d6e559b9fa1e813b2ef8
-  YKSwiftNetworking: 741a4136f0e1c8517b73b0456867ee23bd0d8055
+  YKSwiftNetworking: c36f3dc72837046c578f082bb98655a4b80dd4f3
 
 PODFILE CHECKSUM: ddfd49520b1cdcfd0fc47072cc3d5d807c84c4c7
 
