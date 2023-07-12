@@ -51,7 +51,10 @@ class ViewController: UIViewController {
     }()
     
     private lazy var networking:YKSwiftNetworking = {
-        let networking = YKSwiftNetworking.init()
+        let networking = YKSwiftNetworking.init(defaultHeader: [:]) { response, request in
+            
+            return nil
+        }
         
         //本次网络请求的统一回调处理
         networking.handleResponse = { [weak self] response,request in
