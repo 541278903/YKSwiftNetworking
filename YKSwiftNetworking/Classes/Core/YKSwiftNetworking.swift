@@ -412,7 +412,7 @@ public extension YKSwiftNetworking
         
         guard let request = self.request.copy() as? YKSwiftNetworkRequest else {
             
-            callBack(.failure(YKSwiftNetworkRequest(), .normal(errorMsg: "初始化发生错误")))
+            callBack(.failure(YKSwiftNetworkRequest(), .weakError))
             self._request = nil
             return
         }
@@ -420,7 +420,7 @@ public extension YKSwiftNetworking
         let canContinue = self.handleConfig(with: request)
         if !canContinue {
             
-            callBack(.failure(request, .normal(errorMsg: "请求已中断")))
+            callBack(.failure(request, .unexpectedlyStop))
             self._request = nil
             return
         }
@@ -431,8 +431,8 @@ public extension YKSwiftNetworking
         
         switch request.executeModel {
         case .Normal:
-            request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { progress in
-                request.progressBlock?(progress)
+            request.task = YKSwiftBaseNetworking.request(request: request, progressCallBack: { [weak request] progress in
+                request?.progressBlock?(progress)
             }, successCallBack: { response, request in
                 successCallBack(response,request)
             }, failureCallBack: { request, isCache, responseObject, error in
@@ -446,8 +446,8 @@ public extension YKSwiftNetworking
             request.header.updateValue("multipart/form-data", forKey: "content-type")
             if request.uploadFileData != nil && request.uploadName != nil && request.uploadMimeType != nil && request.formDataName != nil{
                 
-                request.task = YKSwiftBaseNetworking.upload(request: request, progressCallBack: { progress in
-                    request.progressBlock?(progress)
+                request.task = YKSwiftBaseNetworking.upload(request: request, progressCallBack: { [weak request] progress in
+                    request?.progressBlock?(progress)
                 }, successCallBack: { response, request in
                     successCallBack(response,request)
                 }, failureCallBack: { request, isCache, responseObject, error in
@@ -464,8 +464,9 @@ public extension YKSwiftNetworking
             
         case .Download:
             
-            request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { progress in
-                request.progressBlock?(progress)
+            request.task = YKSwiftBaseNetworking.download(request: request, progressCallBack: { [weak request] progress in
+                
+                request?.progressBlock?(progress)
             }, successCallBack: { [weak self] response, request in
                 if let weakSelf = self {
                     if request.isShowLoading {
