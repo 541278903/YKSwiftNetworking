@@ -184,12 +184,14 @@ extension ViewController {
         //请求的统一处理方式
         normalnetwork.handleResponse = { response,request in
             //动态对返回数据进行修改
-            response.rawData = NSError(domain: "yk.error", code: -1, userInfo: [NSLocalizedFailureReasonErrorKey:"23"])
-            //如果本次请求不满意可进行返回error则本次请求直接当做错误返回
-            return NSError(domain: "yk.error", code: -1, userInfo: [
-                NSLocalizedDescriptionKey:"初始egsrgwerg化发生错误",
-                NSLocalizedFailureReasonErrorKey:"初始化发wefgawegfaweg生错误",
-                NSLocalizedRecoverySuggestionErrorKey:"初始化segserg发生错误",
+            if let data = response.rawData as? Data,
+               let dic = try? JSONSerialization.jsonObject(with: data) as? [String:Any]
+            {
+                response.rawData = dic
+            }
+            
+            return NSError.init(domain: "com.yk.network", code: -1, userInfo: [
+                NSLocalizedDescriptionKey:"统一处理回调返回的错误"
             ])
         }
         
@@ -218,7 +220,7 @@ extension ViewController {
         // 本次请求忽略动态参数
         normalnetwork = normalnetwork.disableDynamicParams()
         // 本次请求默认不适用统一处理方式  统一处理方式指 当前networking定义的 handleResponse
-        normalnetwork = normalnetwork.disableHandleResponse()
+//        normalnetwork = normalnetwork.disableHandleResponse()
         // 本次请求将不进行网络数据传输，直接返回设定的mock数据
 //        normalnetwork = normalnetwork.mockData(["123","321"])
         //
@@ -227,16 +229,12 @@ extension ViewController {
             switch result {
             case .success(_, let yKSwiftNetworkResponse):
                 
-                if let data = yKSwiftNetworkResponse.rawData as? Data,
-                   let str = String.init(data: data, encoding: .utf8)
-                {
-                    print("\(str)")
-                }else if let strs = yKSwiftNetworkResponse.rawData {
-                    print("\(strs)")
+                if let responseData = yKSwiftNetworkResponse.rawData {
+                    print(responseData)
                 }
                 break
             case .failure(_, let error):
-                print("\(error.localizedDescription)")
+                print("\(error.errorMsg)")
                 break
             }
         }
