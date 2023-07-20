@@ -70,17 +70,20 @@ class ViewController: UIViewController {
             
             // 进阶  response中的rawData可以替换成需要的数据
             // 例子
-            if let data = response.rawData as? Data {
-                response.rawData = String.init(data: data, encoding: String.Encoding.utf8)
-            }
+//            if let data = response.rawData as? Data {
+//                response.rawData = String.init(data: data, encoding: String.Encoding.utf8)
+//            } else {
+//                response.rawData = "本次请求地址:\(request.urlStr)"
+//            }
+            response.rawData = "本次请求地址:\(request.urlStr)"
             // 修改完后，那么请求回调的数据里面就是此处设置的数据
             
             // 返回如果无错误则返回nil，如果回调内容不符合需求可组织Error 然后返回出去
-            if weakSelf.needToReturnError {
-                return NSError.init(domain: "com.yk.network", code: -1, userInfo: [
-                    NSLocalizedDescriptionKey:"统一处理回调返回的错误"
-                ])
-            }
+//            if weakSelf.needToReturnError {
+//                return NSError.init(domain: "com.yk.network", code: -1, userInfo: [
+//                    NSLocalizedDescriptionKey:"统一处理回调返回的错误"
+//                ])
+//            }
             
             
             return nil
@@ -132,6 +135,11 @@ private extension ViewController {
         self.dataSource.append(TableModel.model("测试Rx普通请求", callBack: { [weak self] in
             guard let weakself = self else { return }
             weakself.testRxNormalExecute()
+        }))
+        
+        self.dataSource.append(TableModel.model("测试Rx合并请求", callBack: { [weak self] in
+            guard let weakSelf = self else { return }
+            weakSelf.testRxMeregExecute()
         }))
         
     }
@@ -277,11 +285,8 @@ extension ViewController {
         let singleResponse = single.mapWithRawData()
         
         // 开始执行上传回调
-        singleResponse.subscribe(onNext: { responseData in
-            print(responseData)
-        }, onError: { error in
-            
-        }, onCompleted: nil, onDisposed: nil).disposed(by: self.disposeBag)
+//        singleResponse.disposed(by: self.disposeBag)
+//        single.subscribe().disposed(by: self.disposeBag)
     }
     
     func testDownloadRequest() {
@@ -369,5 +374,37 @@ extension ViewController {
         }, onCompleted: {
             
         }, onDisposed: nil).disposed(by: self.disposeBag)
+    }
+    
+    func testRxMeregExecute() {
+        
+        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).rx.request().subscribe(onNext: { tuple in
+            print("1")
+        },onError: { error in
+            print("2")
+        }).disposed(by: self.disposeBag)
+        
+        
+        let obs2 = self.networking.get("https://ios.tipsoon.com").params(["a":"getNewArticles",
+                                                                          "c":"api4",
+                                                                          "code":"44B1939F-4E05-4F68-9314-55DABA630FFC",
+                                                                          "md5":"8997dc37faee9a1b086f86813e333daa",
+                                                                          "num":"1",
+                                                                          "timestamp":"1662454870782"
+                                                                         ]).header(["headerKey":"headerValue"]).rx.request().do { tuple in
+            print("1")
+        }
+        
+//        Observable.combineLatest(obs1, obs2).subscribe(onNext: { result1, result2 in
+//
+//            if let data1 = result1.response.rawData {
+//                print("one: \(data1)")
+//            }
+//
+//            if let data2 = result2.response.rawData {
+//                print("two: \(data2)")
+//            }
+//
+//        }).disposed(by: self.disposeBag)
     }
 }

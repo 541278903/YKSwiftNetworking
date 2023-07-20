@@ -365,7 +365,7 @@ public extension YKSwiftNetworking
 
 public extension YKSwiftNetworking
 {
-    func exectue(callBack:@escaping (_ result:YKNetworkResult)->Void) {
+    func exectue(_ currentRequest:YKSwiftNetworkRequest? = nil, callBack:@escaping (_ result:YKNetworkResult)->Void) {
         
         let successCallBack:(_ response:YKSwiftNetworkResponse, _ request:YKSwiftNetworkRequest)->Void = { [weak self] response, request in
             
@@ -410,7 +410,13 @@ public extension YKSwiftNetworking
             
         }
         
-        guard let request = self.request.copy() as? YKSwiftNetworkRequest else {
+        var currentReq = self.request
+        
+        if let currentR = currentRequest {
+            currentReq = currentR
+        }
+        
+        guard let request = currentReq.copy() as? YKSwiftNetworkRequest else {
             
             callBack(.failure(YKSwiftNetworkRequest(), .weakError))
             self._request = nil
