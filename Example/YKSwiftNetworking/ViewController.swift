@@ -70,17 +70,20 @@ class ViewController: UIViewController {
             
             // 进阶  response中的rawData可以替换成需要的数据
             // 例子
-            if let data = response.rawData as? Data {
-                response.rawData = String.init(data: data, encoding: String.Encoding.utf8)
-            }
+//            if let data = response.rawData as? Data {
+//                response.rawData = String.init(data: data, encoding: String.Encoding.utf8)
+//            } else {
+//                response.rawData = "本次请求地址:\(request.urlStr)"
+//            }
+            response.rawData = "本次请求地址:\(request.urlStr)"
             // 修改完后，那么请求回调的数据里面就是此处设置的数据
             
             // 返回如果无错误则返回nil，如果回调内容不符合需求可组织Error 然后返回出去
-            if weakSelf.needToReturnError {
-                return NSError.init(domain: "com.yk.network", code: -1, userInfo: [
-                    NSLocalizedDescriptionKey:"统一处理回调返回的错误"
-                ])
-            }
+//            if weakSelf.needToReturnError {
+//                return NSError.init(domain: "com.yk.network", code: -1, userInfo: [
+//                    NSLocalizedDescriptionKey:"统一处理回调返回的错误"
+//                ])
+//            }
             
             
             return nil
@@ -134,6 +137,11 @@ private extension ViewController {
             weakself.testRxNormalExecute()
         }))
         
+        self.dataSource.append(TableModel.model("测试Rx合并请求", callBack: { [weak self] in
+            guard let weakSelf = self else { return }
+            weakSelf.testRxMeregExecute()
+        }))
+        
     }
 }
 
@@ -184,12 +192,14 @@ extension ViewController {
         //请求的统一处理方式
         normalnetwork.handleResponse = { response,request in
             //动态对返回数据进行修改
-            response.rawData = NSError(domain: "yk.error", code: -1, userInfo: [NSLocalizedFailureReasonErrorKey:"23"])
-            //如果本次请求不满意可进行返回error则本次请求直接当做错误返回
-            return NSError(domain: "yk.error", code: -1, userInfo: [
-                NSLocalizedDescriptionKey:"初始egsrgwerg化发生错误",
-                NSLocalizedFailureReasonErrorKey:"初始化发wefgawegfaweg生错误",
-                NSLocalizedRecoverySuggestionErrorKey:"初始化segserg发生错误",
+            if let data = response.rawData as? Data,
+               let dic = try? JSONSerialization.jsonObject(with: data) as? [String:Any]
+            {
+                response.rawData = dic
+            }
+            
+            return NSError.init(domain: "com.yk.network", code: -1, userInfo: [
+                NSLocalizedDescriptionKey:"统一处理回调返回的错误"
             ])
         }
         
@@ -218,7 +228,7 @@ extension ViewController {
         // 本次请求忽略动态参数
         normalnetwork = normalnetwork.disableDynamicParams()
         // 本次请求默认不适用统一处理方式  统一处理方式指 当前networking定义的 handleResponse
-        normalnetwork = normalnetwork.disableHandleResponse()
+//        normalnetwork = normalnetwork.disableHandleResponse()
         // 本次请求将不进行网络数据传输，直接返回设定的mock数据
 //        normalnetwork = normalnetwork.mockData(["123","321"])
         //
@@ -227,16 +237,12 @@ extension ViewController {
             switch result {
             case .success(_, let yKSwiftNetworkResponse):
                 
-                if let data = yKSwiftNetworkResponse.rawData as? Data,
-                   let str = String.init(data: data, encoding: .utf8)
-                {
-                    print("\(str)")
-                }else if let strs = yKSwiftNetworkResponse.rawData {
-                    print("\(strs)")
+                if let responseData = yKSwiftNetworkResponse.rawData {
+                    print(responseData)
                 }
                 break
             case .failure(_, let error):
-                print("\(error.localizedDescription)")
+                print("\(error.errorMsg)")
                 break
             }
         }
@@ -279,11 +285,8 @@ extension ViewController {
         let singleResponse = single.mapWithRawData()
         
         // 开始执行上传回调
-        singleResponse.subscribe(onNext: { responseData in
-            print(responseData)
-        }, onError: { error in
-            
-        }, onCompleted: nil, onDisposed: nil).disposed(by: self.disposeBag)
+//        singleResponse.disposed(by: self.disposeBag)
+//        single.subscribe().disposed(by: self.disposeBag)
     }
     
     func testDownloadRequest() {
@@ -371,5 +374,41 @@ extension ViewController {
         }, onCompleted: {
             
         }, onDisposed: nil).disposed(by: self.disposeBag)
+    }
+    
+    func testRxMeregExecute() {
+        
+        let network = YKSwiftNetworking.init { response, request in
+            
+            return nil
+        }
+        
+        let obs1 = network.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).rx.request()
+        
+        let obs2 = network.get("https://ios.tipsoon.com").params(["a":"getNewArticles",
+                                                                  "c":"api4",
+                                                                  "code":"44B1939F-4E05-4F68-9314-55DABA630FFC",
+                                                                  "md5":"8997dc37faee9a1b086f86813e333daa",
+                                                                  "num":"1",
+                                                                  "timestamp":"1662454870782"
+                                                                 ]).header(["headerKey":"headerValue"]).rx.request()
+        
+        
+        Observable.combineLatest(obs1, obs2).subscribe(onNext: { result1, result2 in
+
+            if let data1 = result1.response.rawData as? Data,
+               let string = String.init(data: data1, encoding: .utf8)
+            {
+                print("one: \(string)")
+            }
+
+            if let data2 = result2.response.rawData as? Data,
+               let json = try? JSONSerialization.jsonObject(with: data2) as? [String:Any],
+               let dic = json
+            {
+                print("two: \(dic)")
+            }
+
+        }).disposed(by: self.disposeBag)
     }
 }

@@ -10,7 +10,7 @@ import Alamofire
 
 public enum YKNetworkResult {
     case success(YKSwiftNetworkRequest, YKSwiftNetworkResponse)
-    case failure(YKSwiftNetworkRequest, Error)
+    case failure(YKSwiftNetworkRequest, YKSwiftNetworkError)
 }
 
 public enum YKSwiftNetworkRequestEncoding {
