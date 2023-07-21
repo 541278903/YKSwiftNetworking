@@ -199,10 +199,9 @@ fileprivate extension AFError {
     func getError(_ request:YKSwiftNetworkRequest) -> Error {
         
         let errorMessagee = self.errorDescription ?? "error"
-        let failureReason = "FROM:\(request.urlStr) \r\nREASON:\(errorMessagee)"
         return NSError.init(domain: "com.yk.swift.networking", code: self.responseCode ?? -1, userInfo: [
-            NSLocalizedDescriptionKey:failureReason,
-            NSLocalizedFailureReasonErrorKey:failureReason
+            NSLocalizedDescriptionKey:errorMessagee,
+            NSLocalizedFailureReasonErrorKey:errorMessagee
         ])
         
     }

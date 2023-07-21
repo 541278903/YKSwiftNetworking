@@ -378,33 +378,37 @@ extension ViewController {
     
     func testRxMeregExecute() {
         
-        self.networking.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).rx.request().subscribe(onNext: { tuple in
-            print("1")
-        },onError: { error in
-            print("2")
-        }).disposed(by: self.disposeBag)
-        
-        
-        let obs2 = self.networking.get("https://ios.tipsoon.com").params(["a":"getNewArticles",
-                                                                          "c":"api4",
-                                                                          "code":"44B1939F-4E05-4F68-9314-55DABA630FFC",
-                                                                          "md5":"8997dc37faee9a1b086f86813e333daa",
-                                                                          "num":"1",
-                                                                          "timestamp":"1662454870782"
-                                                                         ]).header(["headerKey":"headerValue"]).rx.request().do { tuple in
-            print("1")
+        let network = YKSwiftNetworking.init { response, request in
+            
+            return nil
         }
         
-//        Observable.combineLatest(obs1, obs2).subscribe(onNext: { result1, result2 in
-//
-//            if let data1 = result1.response.rawData {
-//                print("one: \(data1)")
-//            }
-//
-//            if let data2 = result2.response.rawData {
-//                print("two: \(data2)")
-//            }
-//
-//        }).disposed(by: self.disposeBag)
+        let obs1 = network.get("https://www.baidu.com").params(["paramsKey":"paramsValue"]).header(["headerKey":"headerValue"]).rx.request()
+        
+        let obs2 = network.get("https://ios.tipsoon.com").params(["a":"getNewArticles",
+                                                                  "c":"api4",
+                                                                  "code":"44B1939F-4E05-4F68-9314-55DABA630FFC",
+                                                                  "md5":"8997dc37faee9a1b086f86813e333daa",
+                                                                  "num":"1",
+                                                                  "timestamp":"1662454870782"
+                                                                 ]).header(["headerKey":"headerValue"]).rx.request()
+        
+        
+        Observable.combineLatest(obs1, obs2).subscribe(onNext: { result1, result2 in
+
+            if let data1 = result1.response.rawData as? Data,
+               let string = String.init(data: data1, encoding: .utf8)
+            {
+                print("one: \(string)")
+            }
+
+            if let data2 = result2.response.rawData as? Data,
+               let json = try? JSONSerialization.jsonObject(with: data2) as? [String:Any],
+               let dic = json
+            {
+                print("two: \(dic)")
+            }
+
+        }).disposed(by: self.disposeBag)
     }
 }
