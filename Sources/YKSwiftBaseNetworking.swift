@@ -5,7 +5,7 @@
 //  Created by edward on 2021/9/1.
 //
 
-import UIKit
+import Foundation
 import Alamofire
 
 internal class YKSwiftBaseNetworking: NSObject {

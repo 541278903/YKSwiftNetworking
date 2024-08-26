@@ -5,8 +5,9 @@
 //  Created by edward on 2022/10/11.
 //
 
-import UIKit
+import Foundation
 import RxSwift
+import YKSwiftNetworking
 
 public extension Reactive where Base: YKSwiftNetworking {
     
@@ -15,8 +16,7 @@ public extension Reactive where Base: YKSwiftNetworking {
     /// - Returns: 响应
     func request() -> Observable<(request: YKSwiftNetworkRequest,response: YKSwiftNetworkResponse)> {
         
-        let currentRequest = base.request
-        base._request = nil
+        let currentRequest = base.getRequestForRxSwift()
         
         let observable = Observable<(request: YKSwiftNetworkRequest,response: YKSwiftNetworkResponse)>.create { [weak base] observer in
             
@@ -44,7 +44,7 @@ public extension Reactive where Base: YKSwiftNetworking {
             }
             
             return Disposables.create {
-                currentRequest.task?.cancel()
+                currentRequest?.task?.cancel()
             }
             
         }

@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'YKSwiftNetworking'
-  s.version          = '3.3.1'
+  s.version          = '3.3.2'
   s.summary          = 'swift网络请求框架'
 
 
@@ -28,13 +28,13 @@ Pod::Spec.new do |s|
     
   s.subspec "Core" do |ss|
     ss.dependency  'Alamofire', "~> 5.0"
-    ss.source_files = 'YKSwiftNetworking/Classes/Core/**/*'
+    ss.source_files = 'Sources/**/*'
   end
   
   s.subspec 'RxSwift' do |ss|
     ss.dependency  'YKSwiftNetworking/Core'
     ss.dependency  'RxSwift', "~> 6.0"
-    ss.source_files = 'YKSwiftNetworking/Classes/RxSwift/**/*'
+    ss.source_files = 'RxSources/**/*'
   end
     
 end
