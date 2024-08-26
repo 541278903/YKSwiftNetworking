@@ -525,7 +525,7 @@ public extension YKSwiftNetworking {
     
     func getRequestForRxSwift() -> YKSwiftNetworkRequest? {
         
-        if let currentRequest = self.request.copy() as? YKSwiftNetworking {
+        if let currentRequest = self.request.copy() as? YKSwiftNetworkRequest {
             self._request = nil
             return currentRequest
         }
